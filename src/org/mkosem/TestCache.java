@@ -34,8 +34,6 @@ public class TestCache {
 		// initialize values for success/failure statistics and timings
 		long writeTimes = 0L;
 		long readTimes = 0L;
-		boolean writeSuccess = true;
-		boolean readSuccess = true;
 		
 		// set up a threadpool for the test
 		final ExecutorService testThreads = Executors.newFixedThreadPool(threads);
@@ -59,7 +57,7 @@ public class TestCache {
 
 		// run this many times
 		int iterations = 8;
-		for (int i = 0; i < iterations && readSuccess && writeSuccess; i++) {
+		for (int i = 0; i < iterations; i++) {
 			// initialize a cache implementation
 			// final ICache<Object,Object> testMap = new MapCache<Object,Object>(cacheConcurrencyLevel, (int) (size * 2), 1f);
 			final ICache<Object, Object> testMap = new ConcurrentMapCache<Object, Object>(cacheConcurrencyLevel, (int) (size * 2), 1f);
@@ -142,15 +140,10 @@ public class TestCache {
 			System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment  / size + "ns");
 		}
 
-		if (readSuccess && writeSuccess) {
-			System.out.println("Overall average write time: "
-					+ (writeTimes / threadsPerSegment / size / iterations) + "ns");
-			System.out.println("Overall average read time: "
-					+ (readTimes / threadsPerSegment / size / iterations) + "ns");
-		} else {
-			System.out.println("TEST FAILED! Write status: " + writeSuccess
-					+ " Read Status: " + readSuccess);
-		}
+		System.out.println("Overall average write time: "
+				+ (writeTimes / threadsPerSegment / size / iterations) + "ns");
+		System.out.println("Overall average read time: "
+				+ (readTimes / threadsPerSegment / size / iterations) + "ns");
 		
 		// shut down the worker threadpool
 		testThreads.shutdown();
