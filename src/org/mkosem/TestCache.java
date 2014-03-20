@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -16,6 +17,7 @@ public class TestCache {
 	private final int size = 2000000;
 	private final int recordSize = 1024;
 	private final int submitChunkSize = size / threadsPerSegment;
+	private CountDownLatch testSync;
 
 	public static final void main(String[] args) {
 		try {
@@ -26,14 +28,17 @@ public class TestCache {
 	}
 
 	public void testCache() throws Exception {
+		// initialize countdownlatch
+		testSync = new CountDownLatch(threads);
+		
 		// initialize values for success/failure statistics and timings
 		long writeTimes = 0L;
 		long readTimes = 0L;
 		boolean writeSuccess = true;
 		boolean readSuccess = true;
 		
-		// create a threadpool for generic non-test-related work
-		final ExecutorService workerThreads = Executors.newFixedThreadPool(2);
+		// set up a threadpool for the test
+		final ExecutorService testThreads = Executors.newFixedThreadPool(threads);
 
 		// generate test data
 		final TestElement[] firstDataSet = new TestElement[size];
@@ -61,10 +66,10 @@ public class TestCache {
 			// final ICache<Object,Object> testMap = new GuavaCache<Object,Object>(cacheConcurrencyLevel, (int) (size * 2), 1f);
 
 			// prepare worker callables
-			Future<List<Callable<Boolean>>> readPrimer = workerThreads.submit(new Callable<List<Callable<Boolean>>>() {
+			Future<List<Callable<Long>>> readPrimer = testThreads.submit(new Callable<List<Callable<Long>>>() {
 				@Override
-				public List<Callable<Boolean>> call() throws Exception {
-					final List<Callable<Boolean>> writeCallables = new ArrayList<Callable<Boolean>>();
+				public List<Callable<Long>> call() throws Exception {
+					final List<Callable<Long>> writeCallables = new ArrayList<Callable<Long>>();
 					for (int j = 0 ; j < threadsPerSegment; j++) {
 						TestElement[] setTwoValues = new TestElement[submitChunkSize];
 						System.arraycopy(secondDataSet, j * submitChunkSize, setTwoValues, 0, submitChunkSize);
@@ -75,10 +80,10 @@ public class TestCache {
 				}
 				
 			});
-			Future<List<Callable<Boolean>>> writePrimer = workerThreads.submit(new Callable<List<Callable<Boolean>>>() {
+			Future<List<Callable<Long>>> writePrimer = testThreads.submit(new Callable<List<Callable<Long>>>() {
 				@Override
-				public List<Callable<Boolean>> call() throws Exception {
-					final List<Callable<Boolean>> readCallables = new ArrayList<Callable<Boolean>>();
+				public List<Callable<Long>> call() throws Exception {
+					final List<Callable<Long>> readCallables = new ArrayList<Callable<Long>>();
 					for (int j = 0 ; j < threadsPerSegment; j++) {
 						TestElement[] setOneValues = new TestElement[submitChunkSize];
 						System.arraycopy(firstDataSet, j * submitChunkSize, setOneValues, 0, submitChunkSize);
@@ -96,8 +101,8 @@ public class TestCache {
 			}
 			
 			// retrieve prepared callables
-			final List<Callable<Boolean>> writeCallables = writePrimer.get();
-			final List<Callable<Boolean>> readCallables = readPrimer.get();
+			final List<Callable<Long>> writeCallables = writePrimer.get();
+			final List<Callable<Long>> readCallables = readPrimer.get();
 			
 			// log a status
 			System.out.println("Finished preparing test elements for iteration " + i + ".");
@@ -105,91 +110,63 @@ public class TestCache {
 			// force garbage collection before starting
 			System.gc();
 			
-			// set up a threadpool for the test
-			final ExecutorService testThreads = Executors.newFixedThreadPool(threads);
+			// submit writes
+			final List<Future<Long>> writeFutures = new ArrayList<Future<Long>>();
+			for (final Callable<Long> callableChunk : writeCallables) {
+				writeFutures.add(testThreads.submit(callableChunk));
+			}
 			
-			// kick off writes
-			Future<Long> writeFuture = workerThreads.submit(new Callable<Long>() {
-						@Override
-						public Long call() throws Exception {
-							// submit writes
-							final List<Future<Boolean>> writeFutures = new ArrayList<Future<Boolean>>();
-							final long writeStartTime = System.nanoTime();
-							for (final Callable<Boolean> callableChunk : writeCallables) {
-								writeFutures.add(testThreads.submit(callableChunk));
-							}
+			// submit reads
+			List<Future<Long>> readFutures = new ArrayList<Future<Long>>();
+			for (Callable<Long> callableChunk : readCallables) {
+				readFutures.add(testThreads.submit(callableChunk));
+			}
+			
+			// retrieve writes
+			long iterationWriteTime = 0L;
+			for (final Future<Long> returnValue : writeFutures) {
+				iterationWriteTime += returnValue.get();
+			}
+			
 
-							// retrieve writes
-							for (final Future<Boolean> returnValue : writeFutures) {
-								returnValue.get();
-							}
-							final long writeEndTime = System.nanoTime();
-							return writeEndTime - writeStartTime;
-						}
-
-					});
-
-			// kick off reads
-			Future<Long> readFuture = workerThreads.submit(new Callable<Long>() {
-						@Override
-						public Long call() throws Exception {
-							// submit reads
-							List<Future<Boolean>> readFutures = new ArrayList<Future<Boolean>>();
-							Long readStartTime = System.nanoTime();
-							for (Callable<Boolean> callableChunk : readCallables) {
-								readFutures.add(testThreads.submit(callableChunk));
-							}
-
-							// retrieve reads
-							for (Future<Boolean> returnValue : readFutures) {
-								if (!returnValue.get()) {
-									throw new Exception("Problem reading data.");
-								}
-							}
-
-							final long readEndTime = System.nanoTime();
-							return readEndTime - readStartTime;
-						}
-
-					});
-
-			// read results
+			// retrieve reads
+			long iterationReadTime = 0L;
+			for (Future<Long> returnValue : readFutures) {
+				iterationReadTime += returnValue.get();
+			}
+			
+			// process results
 			try {
-				long iterationWriteTime = writeFuture.get();
 				writeTimes += iterationWriteTime;
-				System.out.println("Iteration " + i + " average wrie time: " + iterationWriteTime / size + "ns");
+				System.out.println("Iteration " + i + " average wrie time: " + iterationWriteTime / threadsPerSegment / size + "ns");
 			} catch (Exception e) {
 				writeSuccess = false;
 				e.printStackTrace();
 			}
 			try {
-				long iterationReadTime = readFuture.get();
 				readTimes += iterationReadTime;
-				System.out.println("Iteration " + i + " average read time: " + iterationReadTime / size + "ns");
+				System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment  / size + "ns");
 			} catch (Exception e) {
 				readSuccess = false;
 				e.printStackTrace();
 			}
-
-			// shut down the executor
-			testThreads.shutdown();
 		}
 
 		if (readSuccess && writeSuccess) {
 			System.out.println("Overall average write time: "
-					+ (writeTimes / size / iterations) + "ns");
+					+ (writeTimes / threadsPerSegment / size / iterations) + "ns");
 			System.out.println("Overall average read time: "
-					+ (readTimes / size / iterations) + "ns");
+					+ (readTimes / threadsPerSegment / size / iterations) + "ns");
 		} else {
 			System.out.println("TEST FAILED! Write status: " + writeSuccess
 					+ " Read Status: " + readSuccess);
 		}
 		
 		// shut down the worker threadpool
-		workerThreads.shutdown();
+		testThreads.shutdown();
 	}
 
-	private class CacheWriter implements Callable<Boolean> {
+	private class CacheWriter implements Callable<Long> {
 		private final TestElement[] elements_;
 		private final ICache<Object, Object> cache_;
 
@@ -200,15 +177,20 @@ public class TestCache {
 		}
 
 		@Override
-		public Boolean call() throws Exception {
+		public Long call() throws Exception {
+			testSync.countDown();
+			testSync.await();
+			
+			final long writeStartTime = System.nanoTime();
 			for (TestElement element : elements_) {
 				cache_.put(element.getKey(), element.getValue());
 			}
-			return true;
+			final long writeEndTime = System.nanoTime();
+			return writeEndTime - writeStartTime;
 		}
 	}
 
-	private class CacheReader implements Callable<Boolean> {
+	private class CacheReader implements Callable<Long> {
 		private final TestElement[] elements_;
 		private final ICache<Object, Object> cache_;
 
@@ -219,14 +201,18 @@ public class TestCache {
 		}
 
 		@Override
-		public Boolean call() throws Exception {
-			boolean success = true;
+		public Long call() throws Exception {
+			testSync.countDown();
+			testSync.await();
+			
+			long readStartTime = System.nanoTime();
 			for (TestElement element : elements_) {
 				if (!cache_.get(element.getKey()).equals(element.getValue())) {
-					success = false;
+					throw new Exception("Read failed for key " + element.getKey() + ".  Returned value was not " + element.getValue() + ".");
 				}
 			}
-			return success;
+			final long readEndTime = System.nanoTime();
+			return readEndTime - readStartTime;
 		}
 
 	}
