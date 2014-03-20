@@ -136,20 +136,10 @@ public class TestCache {
 			}
 			
 			// process results
-			try {
-				writeTimes += iterationWriteTime;
-				System.out.println("Iteration " + i + " average wrie time: " + iterationWriteTime / threadsPerSegment / size + "ns");
-			} catch (Exception e) {
-				writeSuccess = false;
-				e.printStackTrace();
-			}
-			try {
-				readTimes += iterationReadTime;
-				System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment  / size + "ns");
-			} catch (Exception e) {
-				readSuccess = false;
-				e.printStackTrace();
-			}
+			writeTimes += iterationWriteTime;
+			System.out.println("Iteration " + i + " average wrie time: " + iterationWriteTime / threadsPerSegment / size + "ns");
+			readTimes += iterationReadTime;
+			System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment  / size + "ns");
 		}
 
 		if (readSuccess && writeSuccess) {
