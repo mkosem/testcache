@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 public class TestCache {
@@ -17,7 +18,10 @@ public class TestCache {
 	private final int size = 2000000;
 	private final int recordSize = 1024;
 	private final int submitChunkSize = size / threadsPerSegment;
+	private final int testIterations = 8;
 	private CountDownLatch testSync;
+	private CountDownLatch startTimeSync;
+	private volatile long startTime;
 
 	public static final void main(String[] args) {
 		try {
@@ -30,13 +34,14 @@ public class TestCache {
 	public void testCache() throws Exception {
 		// initialize countdownlatch
 		testSync = new CountDownLatch(threads);
+		startTimeSync = new CountDownLatch(1);
 		
 		// initialize values for success/failure statistics and timings
 		long writeTimes = 0L;
 		long readTimes = 0L;
 		
 		// set up a threadpool for the test
-		final ExecutorService testThreads = Executors.newFixedThreadPool(threads);
+		final ExecutorService testThreads = Executors.newFixedThreadPool(threads + 1);
 
 		// generate test data
 		final TestElement[] firstDataSet = new TestElement[size];
@@ -56,8 +61,7 @@ public class TestCache {
 		System.out.println("Finished generating test data.");
 
 		// run this many times
-		int iterations = 8;
-		for (int i = 0; i < iterations; i++) {
+		for (int i = 0; i < testIterations; i++) {
 			// initialize a cache implementation
 			// final ICache<Object,Object> testMap = new MapCache<Object,Object>(cacheConcurrencyLevel, (int) (size * 2), 1f);
 			final ICache<Object, Object> testMap = new ConcurrentMapCache<Object, Object>(cacheConcurrencyLevel, (int) (size * 2), 1f);
@@ -120,12 +124,26 @@ public class TestCache {
 				readFutures.add(testThreads.submit(callableChunk));
 			}
 			
+			// submit start time task
+			testThreads.submit(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						testSync.await();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					startTime = System.nanoTime();
+					startTimeSync.countDown();
+				}
+			});
+			
 			// retrieve writes
 			long iterationWriteTime = 0L;
 			for (final Future<Long> returnValue : writeFutures) {
 				iterationWriteTime += returnValue.get();
-			}
-			
+			}			
 
 			// retrieve reads
 			long iterationReadTime = 0L;
@@ -141,9 +159,9 @@ public class TestCache {
 		}
 
 		System.out.println("Overall average write time: "
-				+ (writeTimes / threadsPerSegment / size / iterations) + "ns");
+				+ (writeTimes / threadsPerSegment / size / testIterations) + "ns");
 		System.out.println("Overall average read time: "
-				+ (readTimes / threadsPerSegment / size / iterations) + "ns");
+				+ (readTimes / threadsPerSegment / size / testIterations) + "ns");
 		
 		// shut down the worker threadpool
 		testThreads.shutdown();
@@ -162,14 +180,13 @@ public class TestCache {
 		@Override
 		public Long call() throws Exception {
 			testSync.countDown();
-			testSync.await();
+			startTimeSync.await();
 			
-			final long writeStartTime = System.nanoTime();
 			for (TestElement element : elements_) {
 				cache_.put(element.getKey(), element.getValue());
 			}
 			final long writeEndTime = System.nanoTime();
-			return writeEndTime - writeStartTime;
+			return writeEndTime - startTime;
 		}
 	}
 
@@ -186,16 +203,15 @@ public class TestCache {
 		@Override
 		public Long call() throws Exception {
 			testSync.countDown();
-			testSync.await();
+			startTimeSync.await();
 			
-			long readStartTime = System.nanoTime();
 			for (TestElement element : elements_) {
 				if (!cache_.get(element.getKey()).equals(element.getValue())) {
 					throw new Exception("Read failed for key " + element.getKey() + ".  Returned value was not " + element.getValue() + ".");
 				}
 			}
 			final long readEndTime = System.nanoTime();
-			return readEndTime - readStartTime;
+			return readEndTime - startTime;
 		}
 
 	}
