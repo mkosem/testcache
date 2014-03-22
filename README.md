@@ -11,7 +11,7 @@ The test operates via a simple pattern:
 
 Support is included, out of the box, for testing against a simple Synchronized HashMap, a ConcurrentHashMap, a Guava-based Cache, and a NitroCache-based cache.
 
-On my Core i5-4570S desktop PC with 16GB of DDR3-2400 cas ram running Gentoo Linux with a 3.13.5 kernel within Eclipse on Oracle JDK 1.7.0u51, I see the following performance figures for each of these storage units.
+On my Core i5-4570S desktop PC with 16GB of DDR3-2400 cas11 ram running Gentoo Linux with a 3.13.5 kernel within Eclipse on Oracle JDK 1.7.0u51, I see the following performance figures for each of these storage units.
 
 Synchronized HashMap:
 Overall average write time: 471ns
@@ -22,8 +22,8 @@ Overall average write time: 71ns
 Overall average read time: 125ns
 
 Ehcache (LRU/eternal/heap only/max capacity set):
-Overall average write time: 348ns
-Overall average read time: 406ns
+Overall average write time: 334ns
+Overall average read time: 395ns
 
 Guava Cache (initial/max capacity set):
 Overall average write time: 178ns
