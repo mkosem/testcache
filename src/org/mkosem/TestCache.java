@@ -64,7 +64,8 @@ public class TestCache {
 			// initialize a cache implementation
 			// final ICache<Object,Object> testMap = new MapCache<Object,Object>((int) (size * 2), 1f);
 			// final ICache<Object, Object> testMap = new ConcurrentMapCache<Object, Object>(cacheConcurrencyLevel, (int) (size * 2), 1f);
-			final ICache<Object,Object> testMap = new GuavaCache<Object,Object>(cacheConcurrencyLevel, (int) (size * 2));
+			// final ICache<Object,Object> testMap = new GuavaCache<Object,Object>(cacheConcurrencyLevel, (int) (size * 2));
+			final ICache<Object,Object> testMap = new NitroCache<Object,Object>(size * 2);
 
 			// prepare worker callables
 			Future<List<Callable<Long>>> readPrimer = testThreads.submit(new Callable<List<Callable<Long>>>() {
