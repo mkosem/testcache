@@ -21,4 +21,7 @@ public class MapCache<K,V> implements ICache<K,V> {
 		return cache_.get(key);
 	}
 	
+	@Override
+	public void destroy(){}
+	
 }

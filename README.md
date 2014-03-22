@@ -21,6 +21,10 @@ Concurrent HashMap:
 Overall average write time: 71ns
 Overall average read time: 125ns
 
+Ehcache (LRU/eternal/heap only/max capacity set):
+Overall average write time: 348ns
+Overall average read time: 406ns
+
 Guava Cache (initial/max capacity set):
 Overall average write time: 178ns
 Overall average read time: 548ns

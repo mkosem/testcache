@@ -19,4 +19,7 @@ public class GuavaCache<K,V> implements ICache<K,V> {
 	public V get(K key) {
 		return cache_.getIfPresent(key);
 	}
+	
+	@Override
+	public void destroy(){}
 }

@@ -18,4 +18,7 @@ public class NitroCache<K,V> implements ICache<K,V> {
 	public V get(K key) {
 		return cache_.get(key);
 	}
+	
+	@Override
+	public void destroy(){}
 }

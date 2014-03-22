@@ -26,7 +26,7 @@ public class TestCache {
 		try {
 			new TestCache().testCache();
 		} catch (Exception e) {
-			System.out.println("A fatal error occurred during testing: " + e.toString());
+			e.printStackTrace();
 		}
 	}
 
@@ -65,7 +65,8 @@ public class TestCache {
 			// final ICache<Object,Object> testMap = new MapCache<Object,Object>((int) (size * 2), 1f);
 			// final ICache<Object, Object> testMap = new ConcurrentMapCache<Object, Object>(cacheConcurrencyLevel, (int) (size * 2), 1f);
 			// final ICache<Object,Object> testMap = new GuavaCache<Object,Object>(cacheConcurrencyLevel, (int) (size * 2));
-			final ICache<Object,Object> testMap = new NitroCache<Object,Object>(size * 2);
+			//final ICache<Object,Object> testMap = new NitroCache<Object,Object>(size * 2);
+			final ICache<Object,Object> testMap = new Ehcache<Object,Object>(size * 2);
 
 			// prepare worker callables
 			Future<List<Callable<Long>>> readPrimer = testThreads.submit(new Callable<List<Callable<Long>>>() {
@@ -156,6 +157,9 @@ public class TestCache {
 			System.out.println("Iteration " + i + " average wrie time: " + iterationWriteTime / threadsPerSegment / size + "ns");
 			readTimes += iterationReadTime;
 			System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment  / size + "ns");
+			
+			// destroy cache if necessary
+			testMap.destroy();
 		}
 
 		System.out.println("Overall average write time: "
