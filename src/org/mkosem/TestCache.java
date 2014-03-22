@@ -8,7 +8,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.locks.ReentrantLock;
 
 
 public class TestCache {
@@ -63,9 +62,9 @@ public class TestCache {
 		// run this many times
 		for (int i = 0; i < testIterations; i++) {
 			// initialize a cache implementation
-			// final ICache<Object,Object> testMap = new MapCache<Object,Object>(cacheConcurrencyLevel, (int) (size * 2), 1f);
-			final ICache<Object, Object> testMap = new ConcurrentMapCache<Object, Object>(cacheConcurrencyLevel, (int) (size * 2), 1f);
-			// final ICache<Object,Object> testMap = new GuavaCache<Object,Object>(cacheConcurrencyLevel, (int) (size * 2), 1f);
+			// final ICache<Object,Object> testMap = new MapCache<Object,Object>((int) (size * 2), 1f);
+			// final ICache<Object, Object> testMap = new ConcurrentMapCache<Object, Object>(cacheConcurrencyLevel, (int) (size * 2), 1f);
+			final ICache<Object,Object> testMap = new GuavaCache<Object,Object>(cacheConcurrencyLevel, (int) (size * 2));
 
 			// prepare worker callables
 			Future<List<Callable<Long>>> readPrimer = testThreads.submit(new Callable<List<Callable<Long>>>() {

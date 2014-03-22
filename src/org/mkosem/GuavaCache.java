@@ -1,15 +1,13 @@
 package org.mkosem;
 
-import java.util.concurrent.TimeUnit;
-
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 public class GuavaCache<K,V> implements ICache<K,V> {
 	private final Cache<K,V> cache_;
 	
-	public GuavaCache(int concurrencyLevel, int initialCapacity, Float fillFactor) {
-		cache_ = CacheBuilder.newBuilder().concurrencyLevel(concurrencyLevel).initialCapacity(initialCapacity).expireAfterWrite(86400, TimeUnit.SECONDS).build();
+	public GuavaCache(int concurrencyLevel, int initialCapacity) {
+		cache_ = CacheBuilder.newBuilder().concurrencyLevel(concurrencyLevel).initialCapacity(initialCapacity).build();
 	}
 
 	@Override

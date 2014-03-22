@@ -7,7 +7,7 @@ import java.util.Map;
 public class MapCache<K,V> implements ICache<K,V> {
 	private final Map<K,V> cache_;
 	
-	public MapCache(int concurrencyLevel, int initialCapacity, Float fillFactor) {
+	public MapCache(int initialCapacity, Float fillFactor) {
 		cache_ = Collections.synchronizedMap(new HashMap<K,V>(initialCapacity, fillFactor));
 	}
 
