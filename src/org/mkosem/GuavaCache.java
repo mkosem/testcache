@@ -6,8 +6,8 @@ import com.google.common.cache.CacheBuilder;
 public class GuavaCache<K,V> implements ICache<K,V> {
 	private final Cache<K,V> cache_;
 	
-	public GuavaCache(int concurrencyLevel, int initialCapacity) {
-		cache_ = CacheBuilder.newBuilder().concurrencyLevel(concurrencyLevel).maximumSize(initialCapacity).initialCapacity(initialCapacity).build();
+	public GuavaCache(int concurrencyLevel, int capacity) {
+		cache_ = CacheBuilder.newBuilder().concurrencyLevel(concurrencyLevel).maximumSize(capacity).initialCapacity(capacity).build();
 	}
 
 	@Override
