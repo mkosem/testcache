@@ -33,7 +33,6 @@ JCS Cache (max capacity set):
  - Overall average write time: 782ns
  - Overall average read time: 1124ns
 
-
 NitroCache (FIFO):
  - Overall average write time: 460ns
  - Overall average read time: 599ns
