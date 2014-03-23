@@ -9,15 +9,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-
 public class TestCache {
-	private final int threads = 4;
-	private final int threadsPerSegment = threads / 2;
-	private final int cacheConcurrencyLevel = threads * 2;
-	private final int size = 2000000;
-	private final int recordSize = 1024;
-	private final int submitChunkSize = size / threadsPerSegment;
-	private final int testIterations = 8;
+	// config values
+	private static final int threads = 4;
+	private static final int size = 2000000;
+	private static final int recordSize = 1024;
+	private static final int testIterations = 8;
+
+	// calculated config values
+	private static final int totalCacheCapacity = size * 2;
+	private static final int cacheConcurrencyLevel = threads * 2;
+	private static final int threadsPerSegment = threads / 2;
+	private static final int submitChunkSize = size / threadsPerSegment;
+		
 	private CountDownLatch testSync;
 	private CountDownLatch startTimeSync;
 	private volatile long startTime;
@@ -30,15 +34,25 @@ public class TestCache {
 		}
 	}
 
+	static void shuffleArray(TestElement[] ar) {
+		Random rnd = new Random();
+		for (int i = ar.length - 1; i > 0; i--) {
+			int index = rnd.nextInt(i + 1);
+			TestElement a = ar[index];
+			ar[index] = ar[i];
+			ar[i] = a;
+		}
+	}
+
 	public void testCache() throws Exception {
 		// initialize countdownlatch
 		testSync = new CountDownLatch(threads);
 		startTimeSync = new CountDownLatch(1);
-		
+
 		// initialize values for success/failure statistics and timings
 		long writeTimes = 0L;
 		long readTimes = 0L;
-		
+
 		// set up a threadpool for the test
 		final ExecutorService testThreads = Executors.newFixedThreadPool(threads + 1);
 
@@ -51,7 +65,7 @@ public class TestCache {
 			byte[] firstBytes = new byte[recordSize];
 			random.nextBytes(firstBytes);
 			firstDataSet[i] = new TestElement(Integer.toString(i), new ValueBox(firstBytes));
-			
+
 			// create data for second batch
 			byte[] secondBytes = new byte[recordSize];
 			random.nextBytes(secondBytes);
@@ -62,19 +76,19 @@ public class TestCache {
 		// run this many times
 		for (int i = 0; i < testIterations; i++) {
 			// initialize a cache implementation
-			// final ICache<String, ValueBox> testMap = new MapCache<String, ValueBox>((int) (size * 2), 1f);
-			final ICache<String, ValueBox> testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, (int) (size * 2), 1f);
-			// final ICache<String, ValueBox> testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, (int) (size * 2));
-			// final ICache<String, ValueBox> testMap = new NitroCache<String, ValueBox>(size * 2);
-			// final ICache<String, ValueBox> testMap = new Ehcache<String, ValueBox>(size * 2);
-			// final ICache<String, ValueBox> testMap = new JCSCache<String,ValueBox>(size * 2);
+			// final ICache<String, ValueBox> testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
+			final ICache<String, ValueBox> testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			// final ICache<String, ValueBox> testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
+			// final ICache<String, ValueBox> testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
+			// final ICache<String, ValueBox> testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
+			// final ICache<String, ValueBox> testMap = new JCSCache<String,ValueBox>(totalCacheCapacity);
 
 			// prepare worker callables
 			Future<List<Callable<Long>>> readPrimer = testThreads.submit(new Callable<List<Callable<Long>>>() {
 				@Override
 				public List<Callable<Long>> call() throws Exception {
 					final List<Callable<Long>> writeCallables = new ArrayList<Callable<Long>>();
-					for (int j = 0 ; j < threadsPerSegment; j++) {
+					for (int j = 0; j < threadsPerSegment; j++) {
 						TestElement[] setTwoValues = new TestElement[submitChunkSize];
 						System.arraycopy(secondDataSet, j * submitChunkSize, setTwoValues, 0, submitChunkSize);
 						shuffleArray(setTwoValues);
@@ -82,13 +96,13 @@ public class TestCache {
 					}
 					return writeCallables;
 				}
-				
+
 			});
 			Future<List<Callable<Long>>> writePrimer = testThreads.submit(new Callable<List<Callable<Long>>>() {
 				@Override
 				public List<Callable<Long>> call() throws Exception {
 					final List<Callable<Long>> readCallables = new ArrayList<Callable<Long>>();
-					for (int j = 0 ; j < threadsPerSegment; j++) {
+					for (int j = 0; j < threadsPerSegment; j++) {
 						TestElement[] setOneValues = new TestElement[submitChunkSize];
 						System.arraycopy(firstDataSet, j * submitChunkSize, setOneValues, 0, submitChunkSize);
 						shuffleArray(setOneValues);
@@ -96,36 +110,33 @@ public class TestCache {
 					}
 					return readCallables;
 				}
-				
+
 			});
-			
+
 			// while we're waiting for our workers to be created, prime the cache
 			for (TestElement element : firstDataSet) {
 				testMap.put(element.getKey(), element.getValue());
 			}
-			
+
 			// retrieve prepared callables
 			final List<Callable<Long>> writeCallables = writePrimer.get();
 			final List<Callable<Long>> readCallables = readPrimer.get();
-			
+
 			// log a status
 			System.out.println("Finished preparing test elements for iteration " + i + ".");
 
-			// force garbage collection before starting
-			System.gc();
-			
 			// submit writes
 			final List<Future<Long>> writeFutures = new ArrayList<Future<Long>>();
 			for (final Callable<Long> callableChunk : writeCallables) {
 				writeFutures.add(testThreads.submit(callableChunk));
 			}
-			
+
 			// submit reads
 			List<Future<Long>> readFutures = new ArrayList<Future<Long>>();
 			for (Callable<Long> callableChunk : readCallables) {
 				readFutures.add(testThreads.submit(callableChunk));
 			}
-			
+
 			// submit start time task
 			testThreads.submit(new Runnable() {
 				@Override
@@ -136,71 +147,50 @@ public class TestCache {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+
+					// force garbage collection before starting
+					System.gc();
+					
+					// get the test start time
 					startTime = System.nanoTime();
 					startTimeSync.countDown();
 				}
 			});
-			
+
 			// retrieve writes
 			long iterationWriteTime = 0L;
 			for (final Future<Long> returnValue : writeFutures) {
 				iterationWriteTime += returnValue.get();
-			}			
+			}
 
 			// retrieve reads
 			long iterationReadTime = 0L;
 			for (Future<Long> returnValue : readFutures) {
 				iterationReadTime += returnValue.get();
 			}
-			
+
 			// destroy cache if necessary
 			testMap.destroy();
-			
+
 			// process results
 			writeTimes += iterationWriteTime;
 			System.out.println("Iteration " + i + " average wrie time: " + iterationWriteTime / threadsPerSegment / size + "ns");
 			readTimes += iterationReadTime;
-			System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment  / size + "ns");
+			System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment / size + "ns");
 		}
 
-		System.out.println("Overall average write time: "
-				+ (writeTimes / threadsPerSegment / size / testIterations) + "ns");
-		System.out.println("Overall average read time: "
-				+ (readTimes / threadsPerSegment / size / testIterations) + "ns");
-		
+		System.out.println("Overall average write time: " + (writeTimes / threadsPerSegment / size / testIterations) + "ns");
+		System.out.println("Overall average read time: " + (readTimes / threadsPerSegment / size / testIterations) + "ns");
+
 		// shut down the worker threadpool
 		testThreads.shutdown();
-	}
-
-	private class CacheWriter implements Callable<Long> {
-		private final TestElement[] elements_;
-		private final ICache<String, ValueBox> cache_;
-
-		private CacheWriter(TestElement[] writeElements,
-				ICache<String, ValueBox> cache) {
-			elements_ = writeElements;
-			cache_ = cache;
-		}
-
-		@Override
-		public Long call() throws Exception {
-			testSync.countDown();
-			startTimeSync.await();
-			
-			for (TestElement element : elements_) {
-				cache_.put(element.getKey(), element.getValue());
-			}
-			final long writeEndTime = System.nanoTime();
-			return writeEndTime - startTime;
-		}
 	}
 
 	private class CacheReader implements Callable<Long> {
 		private final TestElement[] elements_;
 		private final ICache<String, ValueBox> cache_;
 
-		private CacheReader(TestElement[] readElements,
-				ICache<String, ValueBox> cache) {
+		private CacheReader(TestElement[] readElements, ICache<String, ValueBox> cache) {
 			elements_ = readElements;
 			cache_ = cache;
 		}
@@ -209,7 +199,7 @@ public class TestCache {
 		public Long call() throws Exception {
 			testSync.countDown();
 			startTimeSync.await();
-			
+
 			for (TestElement element : elements_) {
 				if (!cache_.get(element.getKey()).equals(element.getValue())) {
 					throw new Exception("Read failed for key " + element.getKey() + ".  Returned value was not " + element.getValue() + ".");
@@ -221,14 +211,25 @@ public class TestCache {
 
 	}
 
-	static void shuffleArray(TestElement[] ar) {
-		Random rnd = new Random();
-		for (int i = ar.length - 1; i > 0; i--) {
-			int index = rnd.nextInt(i + 1);
-			// Simple swap
-			TestElement a = ar[index];
-			ar[index] = ar[i];
-			ar[i] = a;
+	private class CacheWriter implements Callable<Long> {
+		private final TestElement[] elements_;
+		private final ICache<String, ValueBox> cache_;
+
+		private CacheWriter(TestElement[] writeElements, ICache<String, ValueBox> cache) {
+			elements_ = writeElements;
+			cache_ = cache;
+		}
+
+		@Override
+		public Long call() throws Exception {
+			testSync.countDown();
+			startTimeSync.await();
+
+			for (TestElement element : elements_) {
+				cache_.put(element.getKey(), element.getValue());
+			}
+			final long writeEndTime = System.nanoTime();
+			return writeEndTime - startTime;
 		}
 	}
 }
