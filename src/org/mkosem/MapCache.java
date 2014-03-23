@@ -22,6 +22,8 @@ public class MapCache<K,V> implements ICache<K,V> {
 	}
 	
 	@Override
-	public void destroy(){}
+	public void destroy(){
+		cache_.clear();
+	}
 	
 }

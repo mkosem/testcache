@@ -38,8 +38,9 @@ public class JCSCache<K extends Serializable,V extends Serializable> implements 
 	
 	@Override
 	public void destroy(){
-		cache_.dispose();
 		try {
+			cache_.clear();
+			cache_.dispose();
 			CompositeCacheManager.getInstance().shutDown();
 		} catch (CacheException e) {
 			e.printStackTrace();

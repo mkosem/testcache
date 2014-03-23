@@ -20,5 +20,8 @@ public class NitroCache<K,V> implements ICache<K,V> {
 	}
 	
 	@Override
-	public void destroy(){}
+	public void destroy(){
+		cache_.clear();
+		cache_.shutdown();
+	}
 }

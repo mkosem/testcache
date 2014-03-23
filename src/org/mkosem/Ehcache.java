@@ -31,6 +31,7 @@ public class Ehcache<K,V> implements ICache<K,V> {
 	
 	@Override
 	public void destroy(){
+		cache_.removeAll();
 		CacheManager.getInstance().removeCache(cacheName);
 	}
 }
