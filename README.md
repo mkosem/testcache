@@ -17,7 +17,7 @@ Synchronized HashMap:
  - Overall average write time: 471ns
  - Overall average read time: 587ns
 
-Concurrent HashMap:
+ConcurrentHashMap:
  - Overall average write time: 71ns
  - Overall average read time: 125ns
 
