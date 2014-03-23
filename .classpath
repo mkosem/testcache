@@ -8,5 +8,7 @@
 	<classpathentry kind="lib" path="lib/slf4j-api-1.6.6.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-jdk14-1.6.6.jar"/>
 	<classpathentry kind="lib" path="resources"/>
+	<classpathentry kind="lib" path="lib/commons-jcs-2.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging-1.1.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

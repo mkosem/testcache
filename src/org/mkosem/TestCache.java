@@ -62,11 +62,12 @@ public class TestCache {
 		// run this many times
 		for (int i = 0; i < testIterations; i++) {
 			// initialize a cache implementation
-			// final ICache<Object,Object> testMap = new MapCache<Object,Object>((int) (size * 2), 1f);
-			// final ICache<Object, Object> testMap = new ConcurrentMapCache<Object, Object>(cacheConcurrencyLevel, (int) (size * 2), 1f);
-			// final ICache<Object,Object> testMap = new GuavaCache<Object,Object>(cacheConcurrencyLevel, (int) (size * 2));
-			//final ICache<Object,Object> testMap = new NitroCache<Object,Object>(size * 2);
-			final ICache<Object,Object> testMap = new Ehcache<Object,Object>(size * 2);
+			// final ICache<String, ValueBox> testMap = new MapCache<String, ValueBox>((int) (size * 2), 1f);
+			final ICache<String, ValueBox> testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, (int) (size * 2), 1f);
+			// final ICache<String, ValueBox> testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, (int) (size * 2));
+			// final ICache<String, ValueBox> testMap = new NitroCache<String, ValueBox>(size * 2);
+			// final ICache<String, ValueBox> testMap = new Ehcache<String, ValueBox>(size * 2);
+			// final ICache<String, ValueBox> testMap = new JCSCache<String,ValueBox>(size * 2);
 
 			// prepare worker callables
 			Future<List<Callable<Long>>> readPrimer = testThreads.submit(new Callable<List<Callable<Long>>>() {
@@ -152,14 +153,14 @@ public class TestCache {
 				iterationReadTime += returnValue.get();
 			}
 			
+			// destroy cache if necessary
+			testMap.destroy();
+			
 			// process results
 			writeTimes += iterationWriteTime;
 			System.out.println("Iteration " + i + " average wrie time: " + iterationWriteTime / threadsPerSegment / size + "ns");
 			readTimes += iterationReadTime;
 			System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment  / size + "ns");
-			
-			// destroy cache if necessary
-			testMap.destroy();
 		}
 
 		System.out.println("Overall average write time: "
@@ -173,10 +174,10 @@ public class TestCache {
 
 	private class CacheWriter implements Callable<Long> {
 		private final TestElement[] elements_;
-		private final ICache<Object, Object> cache_;
+		private final ICache<String, ValueBox> cache_;
 
 		private CacheWriter(TestElement[] writeElements,
-				ICache<Object, Object> cache) {
+				ICache<String, ValueBox> cache) {
 			elements_ = writeElements;
 			cache_ = cache;
 		}
@@ -196,10 +197,10 @@ public class TestCache {
 
 	private class CacheReader implements Callable<Long> {
 		private final TestElement[] elements_;
-		private final ICache<Object, Object> cache_;
+		private final ICache<String, ValueBox> cache_;
 
 		private CacheReader(TestElement[] readElements,
-				ICache<Object, Object> cache) {
+				ICache<String, ValueBox> cache) {
 			elements_ = readElements;
 			cache_ = cache;
 		}
