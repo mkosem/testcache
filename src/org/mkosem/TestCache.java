@@ -114,8 +114,7 @@ public class TestCache {
 		for (int i = 0; i < testIterations; i++) {
 			// initialize a cache implementation
 			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
-			// testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
-			testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
@@ -167,8 +166,9 @@ public class TestCache {
 				iterationReadTime += returnValue.get();
 			}
 
-			// destroy cache if necessary
+			// clean up after testing
 			testMap.destroy();
+			System.gc();
 
 			// process results
 			writeTimes += iterationWriteTime;
