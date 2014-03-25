@@ -114,8 +114,8 @@ public class TestCache {
 		for (int i = 0; i < testIterations; i++) {
 			// initialize a cache implementation
 			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
-			testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
-			// testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			// testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
@@ -125,6 +125,9 @@ public class TestCache {
 			for (TestElement element : firstDataSet) {
 				testMap.put(element.getKey(), element.getValue());
 			}
+			
+			// log a status
+			System.out.println("Finished priming cache for iteration " + i + ".");
 
 			// submit writes
 			final List<Future<Long>> writeFutures = new ArrayList<Future<Long>>();
