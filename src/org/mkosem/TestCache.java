@@ -103,6 +103,10 @@ public class TestCache {
 
 		});
 		
+		// retrieve prepared callables
+		final List<Callable<Long>> writeCallables = writePrimer.get();
+		final List<Callable<Long>> readCallables = readPrimer.get();
+		
 		// write an informational message
 		System.out.println("Finished generating test data.");
 
@@ -111,6 +115,7 @@ public class TestCache {
 			// initialize a cache implementation
 			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
 			testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			// testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
@@ -120,13 +125,6 @@ public class TestCache {
 			for (TestElement element : firstDataSet) {
 				testMap.put(element.getKey(), element.getValue());
 			}
-
-			// retrieve prepared callables
-			final List<Callable<Long>> writeCallables = writePrimer.get();
-			final List<Callable<Long>> readCallables = readPrimer.get();
-
-			// log a status
-			System.out.println("Finished preparing test elements for iteration " + i + ".");
 
 			// submit writes
 			final List<Future<Long>> writeFutures = new ArrayList<Future<Long>>();

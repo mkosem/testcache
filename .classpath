@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="resources"/>
 	<classpathentry kind="lib" path="lib/commons-jcs-2.0-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.3.jar"/>
+	<classpathentry kind="lib" path="lib/se7ccmbackport.jar" sourcepath="/se7backport"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
