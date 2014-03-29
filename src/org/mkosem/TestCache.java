@@ -112,15 +112,16 @@ public class TestCache {
 		System.out.println("Finished generating test data.");
 
 		// run this many times
-		for (int i = 0; i < testIterations; i++) {
+		for (int i = 0; i < testIterations + 1; i++) {
 			// initialize a cache implementation
 			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
 			testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			// testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
-			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
-			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
+			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new JCSCache<String,ValueBox>(totalCacheCapacity);
+			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
+			
 			// prime the cache
 			for (TestElement element : firstDataSet) {
 				testMap.put(element.getKey(), element.getValue());
@@ -172,10 +173,12 @@ public class TestCache {
 			System.gc();
 
 			// process results
-			writeTimes += iterationWriteTime;
-			System.out.println("Iteration " + i + " average wrie time: " + iterationWriteTime / threadsPerSegment / size + "ns");
-			readTimes += iterationReadTime;
-			System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment / size + "ns");
+			if (i > 0) {
+				writeTimes += iterationWriteTime;
+				System.out.println("Iteration " + i + " average wrie time: " + iterationWriteTime / threadsPerSegment / size + "ns");
+				readTimes += iterationReadTime;
+				System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment / size + "ns");
+			}
 		}
 
 		System.out.println("Overall average write time: " + (writeTimes / threadsPerSegment / size / testIterations) + "ns");

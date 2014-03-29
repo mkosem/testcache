@@ -11,32 +11,66 @@ The test operates via a simple pattern:
 
 Support is included, out of the box, for testing against a simple Synchronized HashMap, a ConcurrentHashMap, a back-ported Java SE 7 ConcurrentHashMap an Ehcache-based cache, a Guava-based Cache, a JCS-based cache, and a NitroCache-based cache.
 
-On my Core i5-4570S desktop PC, with 16GB of DDR3-2400 cas11 ram running Gentoo Linux with a 3.13.5 kernel within Eclipse on Oracle JDK 1.8.0, I see the following performance figures for each of these storage units with 4 threads (2 read 2 write) on an 8GB heap with a total size of 4 million records (2 million read (preloaded) + 2 million write).
+On my Core i5-4570S desktop PC, with 16GB of DDR3-2400 cas11 ram running Gentoo Linux with a 3.13.5 kernel within Eclipse on Oracle JDK 1.8.0, I see the following performance figures for each of these storage units on an 8GB heap with a total size of 4 million records (2 million read (preloaded) + 2 million write).
+
+Results with 4 threads (2 read 2 write):
 
 Synchronized HashMap:
- - Overall average write time: 431ns
- - Overall average read time: 580ns
+ - Overall average write time: 368ns
+ - Overall average read time: 572ns
 
 ConcurrentHashMap:
- - Overall average write time: 54ns
- - Overall average read time: 186ns
+ - Overall average write time: 52ns
+ - Overall average read time: 191ns
 
 ConcurrentHashMap (SE7 - backported):
- - Overall average write time: 76ns
- - Overall average read time: 132ns
+ - Overall average write time: 81ns
+ - Overall average read time: 130ns
 
 Ehcache (LRU/eternal/heap only/max capacity set):
- - Overall average write time: 333ns
- - Overall average read time: 396ns
+ - Overall average write time: 329ns
+ - Overall average read time: 380ns
 
 Guava Cache (initial/max capacity set):
- - Overall average write time: 168ns
- - Overall average read time: 545ns
+ - Overall average write time: 172ns
+ - Overall average read time: 567ns
 
 JCS Cache (max capacity set):
- - Overall average write time: 775ns
- - Overall average read time: 1112ns
+ - Overall average write time: 781ns
+ - Overall average read time: 1105ns
 
 NitroCache (FIFO):
- - Overall average write time: 458ns
- - Overall average read time: 598ns
+ - Overall average write time: 504ns
+ - Overall average read time: 570ns
+
+ 
+Results with 128 threads (64 read 64 write):
+
+Synchronized HashMap:
+ - Overall average write time: 344ns
+ - Overall average read time: 590ns
+
+ConcurrentHashMap:
+ - Overall average write time: 29ns
+ - Overall average read time: 71ns
+
+ConcurrentHashMap (SE7 - backported):
+ - Overall average write time: 28ns
+ - Overall average read time: 81ns
+
+Ehcache (LRU/eternal/heap only/max capacity set):
+ - Overall average write time: 297ns
+ - Overall average read time: 262ns
+
+Guava Cache (initial/max capacity set):
+ - Overall average write time: 81ns
+ - Overall average read time: 253ns
+
+JCS Cache (max capacity set):
+ - Overall average write time: 574ns
+ - Overall average read time: 1149ns
+
+NitroCache (FIFO):
+ - Overall average write time: 214ns
+ - Overall average read time: 572ns
+ 
