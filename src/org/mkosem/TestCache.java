@@ -32,6 +32,7 @@ public class TestCache {
 			new TestCache().testCache();
 		} catch (Exception e) {
 			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 
@@ -115,11 +116,11 @@ public class TestCache {
 			// initialize a cache implementation
 			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
 			testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			// testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new JCSCache<String,ValueBox>(totalCacheCapacity);
-
 			// prime the cache
 			for (TestElement element : firstDataSet) {
 				testMap.put(element.getKey(), element.getValue());
