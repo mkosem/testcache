@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class TestCache {
 	// config values
@@ -61,16 +62,15 @@ public class TestCache {
 		// generate test data
 		final TestElement[] firstDataSet = new TestElement[size];
 		final TestElement[] secondDataSet = new TestElement[size];
-		final Random random = new Random();
 		for (int i = 0; i < size; i++) {
 			// create data for first batch
 			byte[] firstBytes = new byte[recordSize];
-			random.nextBytes(firstBytes);
+			ThreadLocalRandom.current().nextBytes(firstBytes);
 			firstDataSet[i] = new TestElement(Integer.toString(i), new ValueBox(firstBytes));
 
 			// create data for second batch
 			byte[] secondBytes = new byte[recordSize];
-			random.nextBytes(secondBytes);
+			ThreadLocalRandom.current().nextBytes(secondBytes);
 			secondDataSet[i] = new TestElement(Integer.toString(size + i), new ValueBox(secondBytes));
 		}
 
