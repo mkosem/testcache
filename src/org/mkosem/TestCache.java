@@ -33,6 +33,7 @@ public class TestCache {
 			new TestCache().testCache();
 		} catch (Exception e) {
 			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 
@@ -61,16 +62,15 @@ public class TestCache {
 		// generate test data
 		final TestElement[] firstDataSet = new TestElement[size];
 		final TestElement[] secondDataSet = new TestElement[size];
-		final Random random = new Random();
 		for (int i = 0; i < size; i++) {
 			// create data for first batch
 			byte[] firstBytes = new byte[recordSize];
-			random.nextBytes(firstBytes);
+			ThreadLocalRandom.current().nextBytes(firstBytes);
 			firstDataSet[i] = new TestElement(Integer.toString(i), new ValueBox(firstBytes));
 
 			// create data for second batch
 			byte[] secondBytes = new byte[recordSize];
-			random.nextBytes(secondBytes);
+			ThreadLocalRandom.current().nextBytes(secondBytes);
 			secondDataSet[i] = new TestElement(Integer.toString(size + i), new ValueBox(secondBytes));
 		}
 
@@ -112,17 +112,17 @@ public class TestCache {
 		System.out.println("Finished generating test data.");
 
 		// run this many times
-		for (int i = 0; i < testIterations; i++) {
+		for (int i = 0; i < testIterations + 1; i++) {
 			// initialize a cache implementation
 			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
 			// testMap = new SemaphoreLockedMapCache<String, ValueBox>(totalCacheCapacity, 1f, cacheConcurrencyLevel);
 			// testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
-			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
-			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
+			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new JCSCache<String,ValueBox>(totalCacheCapacity);
-
+			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
+			
 			// prime the cache
 			for (TestElement element : firstDataSet) {
 				testMap.put(element.getKey(), element.getValue());
@@ -169,14 +169,17 @@ public class TestCache {
 				iterationReadTime += returnValue.get();
 			}
 
-			// destroy cache if necessary
+			// clean up after testing
 			testMap.destroy();
+			System.gc();
 
 			// process results
-			writeTimes += iterationWriteTime;
-			System.out.println("Iteration " + i + " average wrie time: " + iterationWriteTime / threadsPerSegment / size + "ns");
-			readTimes += iterationReadTime;
-			System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment / size + "ns");
+			if (i > 0) {
+				writeTimes += iterationWriteTime;
+				System.out.println("Iteration " + i + " average wrie time: " + iterationWriteTime / threadsPerSegment / size + "ns");
+				readTimes += iterationReadTime;
+				System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment / size + "ns");
+			}
 		}
 
 		System.out.println("Overall average write time: " + (writeTimes / threadsPerSegment / size / testIterations) + "ns");
