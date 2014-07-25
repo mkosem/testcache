@@ -1,4 +1,6 @@
-package org.mkosem;
+package org.mkosem.impl;
+
+import org.mkosem.ICache;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -11,8 +13,8 @@ public class GuavaCache<K,V> implements ICache<K,V> {
 	}
 
 	@Override
-	public void put(K key, V value) {
-		cache_.put(key, value);	
+	public void destroy(){
+		cache_.invalidateAll();
 	}
 
 	@Override
@@ -21,7 +23,7 @@ public class GuavaCache<K,V> implements ICache<K,V> {
 	}
 	
 	@Override
-	public void destroy(){
-		cache_.invalidateAll();
+	public void put(K key, V value) {
+		cache_.put(key, value);	
 	}
 }

@@ -1,9 +1,11 @@
-package org.mkosem;
+package org.mkosem.impl;
 
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import net.sf.ehcache.config.CacheConfiguration;
+
+import org.mkosem.ICache;
 
 public class Ehcache<K,V> implements ICache<K,V> {
 	private final String cacheName = "test";
@@ -18,9 +20,9 @@ public class Ehcache<K,V> implements ICache<K,V> {
 	}
 
 	@Override
-	public void put(K key, V value) {
-		Element element = new Element(key, value);
-		cache_.put(element);
+	public void destroy(){
+		cache_.removeAll();
+		CacheManager.getInstance().removeCache(cacheName);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -30,8 +32,8 @@ public class Ehcache<K,V> implements ICache<K,V> {
 	}
 	
 	@Override
-	public void destroy(){
-		cache_.removeAll();
-		CacheManager.getInstance().removeCache(cacheName);
+	public void put(K key, V value) {
+		Element element = new Element(key, value);
+		cache_.put(element);
 	}
 }

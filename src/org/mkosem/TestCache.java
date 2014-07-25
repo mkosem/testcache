@@ -10,6 +10,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.mkosem.impl.OnHeapMapDBCache;
+
 public class TestCache {
 	// config values
 	private static final int threads = 4;
@@ -115,13 +117,15 @@ public class TestCache {
 		for (int i = 0; i < testIterations + 1; i++) {
 			// initialize a cache implementation
 			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
-			// testMap = new SemaphoreLockedMapCache<String, ValueBox>(totalCacheCapacity, 1f, cacheConcurrencyLevel);
+			// testMap = new ReadWriteLockMapCache<String, ValueBox>(totalCacheCapacity, 1f, cacheConcurrencyLevel);
 			// testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
-			testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			// testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new JCSCache<String,ValueBox>(totalCacheCapacity);
 			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
+			testMap = new OnHeapMapDBCache<String, ValueBox>(totalCacheCapacity);
+			
 			
 			// prime the cache
 			for (TestElement element : firstDataSet) {

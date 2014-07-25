@@ -1,4 +1,6 @@
-package org.mkosem;
+package org.mkosem.impl;
+
+import org.mkosem.ICache;
 
 import com.hv.nitroCache.CacheEviction;
 
@@ -10,8 +12,9 @@ public class NitroCache<K,V> implements ICache<K,V> {
 	}
 
 	@Override
-	public void put(K key, V value) {
-		cache_.put(key, value);	
+	public void destroy(){
+		cache_.clear();
+		cache_.shutdown();
 	}
 
 	@Override
@@ -20,8 +23,7 @@ public class NitroCache<K,V> implements ICache<K,V> {
 	}
 	
 	@Override
-	public void destroy(){
-		cache_.clear();
-		cache_.shutdown();
+	public void put(K key, V value) {
+		cache_.put(key, value);	
 	}
 }

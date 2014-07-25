@@ -1,20 +1,23 @@
-package org.mkosem;
+package org.mkosem.impl;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import se7.java.util.concurrent.ConcurrentHashMap;
+import org.mkosem.ICache;
 
 
 
-public class SE7ConcurrentMapCache<K,V> implements ICache<K,V> {
+public class ConcurrentMapCache<K,V> implements ICache<K,V> {
 	private final Map<K,V> cache_;
 	
-	public SE7ConcurrentMapCache(int concurrencyLevel, int initialCapacity, Float fillFactor) {
+	public ConcurrentMapCache(int concurrencyLevel, int initialCapacity, Float fillFactor) {
 		cache_ = new ConcurrentHashMap<K, V>(initialCapacity, fillFactor, concurrencyLevel);
 	}
 
 	@Override
-	public void destroy(){}
+	public void destroy(){
+		cache_.clear();
+	}
 
 	@Override
 	public V get(K key) {

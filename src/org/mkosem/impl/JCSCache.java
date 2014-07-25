@@ -1,4 +1,4 @@
-package org.mkosem;
+package org.mkosem.impl;
 
 import java.io.Serializable;
 import java.util.Properties;
@@ -8,6 +8,7 @@ import org.apache.commons.jcs.access.CacheAccess;
 import org.apache.commons.jcs.access.exception.CacheException;
 import org.apache.commons.jcs.engine.CompositeCacheAttributes;
 import org.apache.commons.jcs.engine.control.CompositeCacheManager;
+import org.mkosem.ICache;
 
 public class JCSCache<K extends Serializable,V extends Serializable> implements ICache<K,V> {
 	private CacheAccess<K, V> cache_ = null;
@@ -23,20 +24,6 @@ public class JCSCache<K extends Serializable,V extends Serializable> implements 
 	}
 
 	@Override
-	public void put(K key, V value) {
-		try {
-			cache_.put(key, value);
-		} catch (CacheException e) {
-			e.printStackTrace();
-		}	
-	}
-
-	@Override
-	public V get(K key) {
-		return cache_.get(key);
-	}
-	
-	@Override
 	public void destroy(){
 		try {
 			cache_.clear();
@@ -45,5 +32,19 @@ public class JCSCache<K extends Serializable,V extends Serializable> implements 
 		} catch (CacheException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public V get(K key) {
+		return cache_.get(key);
+	}
+	
+	@Override
+	public void put(K key, V value) {
+		try {
+			cache_.put(key, value);
+		} catch (CacheException e) {
+			e.printStackTrace();
+		}	
 	}
 }
