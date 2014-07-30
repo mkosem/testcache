@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.mkosem.impl.ConcurrentMapCache;
 import org.mkosem.impl.OnHeapMapDBCache;
 
 public class TestCache {
@@ -118,13 +119,13 @@ public class TestCache {
 			// initialize a cache implementation
 			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
 			// testMap = new ReadWriteLockMapCache<String, ValueBox>(totalCacheCapacity, 1f, cacheConcurrencyLevel);
-			// testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			// testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new JCSCache<String,ValueBox>(totalCacheCapacity);
 			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
-			testMap = new OnHeapMapDBCache<String, ValueBox>(totalCacheCapacity);
+			// testMap = new OnHeapMapDBCache<String, ValueBox>(totalCacheCapacity);
 			
 			
 			// prime the cache
@@ -137,15 +138,12 @@ public class TestCache {
 
 			// submit writes
 			final List<Future<Long>> writeFutures = new ArrayList<Future<Long>>();
-			for (final Callable<Long> callableChunk : writeCallables) {
-				writeFutures.add(testThreads.submit(callableChunk));
-			}
+			writeCallables.stream().forEach(p -> writeFutures.add(testThreads.submit(p)));
+			
 
 			// submit reads
 			List<Future<Long>> readFutures = new ArrayList<Future<Long>>();
-			for (Callable<Long> callableChunk : readCallables) {
-				readFutures.add(testThreads.submit(callableChunk));
-			}
+			readCallables.stream().forEach(p -> readFutures.add(testThreads.submit(p)));
 			
 			// wait for all threads to reach readiness
 			try {
