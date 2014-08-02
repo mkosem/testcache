@@ -2,8 +2,8 @@ package org.mkosem;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
-import org.terracotta.statistics.jsr166e.ThreadLocalRandom;
 
 public class ValueBox implements Serializable {
 	private static final long serialVersionUID = 838907810902225940L;

@@ -7,9 +7,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.mkosem.impl.ConcurrentMapCache;
-import org.terracotta.statistics.jsr166e.ThreadLocalRandom;
 
 public class TestCache {
 	// config values
