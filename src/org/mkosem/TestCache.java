@@ -9,63 +9,27 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.IntStream;
 
 import org.mkosem.impl.ConcurrentMapCache;
 
 public class TestCache {
-	private class CacheReader implements Callable<Long> {
-		private final TestElement[] elements_;
-
-		private CacheReader(TestElement[] readElements) {
-			elements_ = readElements;
-		}
-
-		@Override
-		public Long call() throws Exception {
-			testSync.countDown();
-			startTimeSync.await();
-
-			for (final TestElement element : elements_) {
-				if (!testMap.get(element.getKey()).equals(element.getValue())) {
-					throw new Exception("Read failed for key " + element.getKey() + ".  Returned value was not " + element.getValue() + ".");
-				}
-			}
-			final long readEndTime = System.nanoTime();
-			return readEndTime - startTime;
-		}
-
-	}
-	private class CacheWriter implements Callable<Long> {
-		private final TestElement[] elements_;
-
-		private CacheWriter(TestElement[] writeElements) {
-			elements_ = writeElements;
-		}
-
-		@Override
-		public Long call() throws Exception {
-			testSync.countDown();
-			startTimeSync.await();
-
-			Arrays.stream(elements_).forEach(e -> testMap.put(e.getKey(), e.getValue()));
-			final long writeEndTime = System.nanoTime();
-			return writeEndTime - startTime;
-		}
-	}
 	// config values
 	private static final int threads = 4;
 	private static final int size = 2000000;
-
 	private static final int recordSize = 1024;
 	private static final int testIterations = 8;
+
 	// calculated config values
 	private static final int totalCacheCapacity = size * 2;
 	private static final int cacheConcurrencyLevel = threads * 2;
-
 	private static final int threadsPerSegment = threads / 2;
 	private static final int submitChunkSize = size / threadsPerSegment;
+
+	private ICache<String, ValueBox> testMap;
+	private CountDownLatch testSync;
+
+	private CountDownLatch startTimeSync;
+	private volatile long startTime;
 
 	public static final void main(String[] args) {
 		try {
@@ -85,12 +49,6 @@ public class TestCache {
 			ar[i] = a;
 		}
 	}
-
-	private ICache<String, ValueBox> testMap;
-	private CountDownLatch testSync;
-	private CountDownLatch startTimeSync;
-	private volatile long startTime;
-
 	public void testCache() throws Exception {
 		// initialize countdownlatch
 		testSync = new CountDownLatch(threads);
@@ -107,18 +65,8 @@ public class TestCache {
 		// generate test data
 		final TestElement[] firstDataSet = new TestElement[size];
 		final TestElement[] secondDataSet = new TestElement[size];
-		final Random random = ThreadLocalRandom.current();
-		for (int i = 0; i < size; i++) {
-			// create data for first batch
-			final byte[] firstBytes = new byte[recordSize];
-			random.nextBytes(firstBytes);
-			firstDataSet[i] = new TestElement(Integer.toString(i), new ValueBox(firstBytes));
-
-			// create data for second batch
-			final byte[] secondBytes = new byte[recordSize];
-			random.nextBytes(secondBytes);
-			secondDataSet[i] = new TestElement(Integer.toString(size + i), new ValueBox(secondBytes));
-		}
+		java.util.stream.IntStream.range(0, size).parallel().forEach(i -> firstDataSet[i] = new TestElement(Integer.toString(i), new ValueBox(recordSize)));
+		java.util.stream.IntStream.range(0, size).parallel().forEach(i -> secondDataSet[i] = new TestElement(Integer.toString(size + i), new ValueBox(recordSize)));
 
 		// prepare worker callables
 		final Future<List<Callable<Long>>> readPrimer = testThreads.submit(() -> {
@@ -223,5 +171,45 @@ public class TestCache {
 
 		// shut down the worker threadpool
 		testThreads.shutdown();
+	}
+	private class CacheReader implements Callable<Long> {
+		private final TestElement[] elements_;
+
+		private CacheReader(TestElement[] readElements) {
+			elements_ = readElements;
+		}
+
+		@Override
+		public Long call() throws Exception {
+			testSync.countDown();
+			startTimeSync.await();
+
+			for (final TestElement element : elements_) {
+				if (!testMap.get(element.getKey()).equals(element.getValue())) {
+					throw new Exception("Read failed for key " + element.getKey() + ".  Returned value was not " + element.getValue() + ".");
+				}
+			}
+			final long readEndTime = System.nanoTime();
+			return readEndTime - startTime;
+		}
+
+	}
+
+	private class CacheWriter implements Callable<Long> {
+		private final TestElement[] elements_;
+
+		private CacheWriter(TestElement[] writeElements) {
+			elements_ = writeElements;
+		}
+
+		@Override
+		public Long call() throws Exception {
+			testSync.countDown();
+			startTimeSync.await();
+
+			Arrays.stream(elements_).forEach(e -> testMap.put(e.getKey(), e.getValue()));
+			final long writeEndTime = System.nanoTime();
+			return writeEndTime - startTime;
+		}
 	}
 }
