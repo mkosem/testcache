@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.mkosem.impl.ConcurrentMapCache;
+import org.terracotta.statistics.jsr166e.ThreadLocalRandom;
 
 public class TestCache {
 	// config values
@@ -27,7 +28,6 @@ public class TestCache {
 
 	private ICache<String, ValueBox> testMap;
 	private CountDownLatch testSync;
-
 	private CountDownLatch startTimeSync;
 	private volatile long startTime;
 
@@ -41,7 +41,7 @@ public class TestCache {
 		}
 	}
 	static void shuffleArray(TestElement[] ar) {
-		final Random rnd = new Random();
+		final Random rnd = ThreadLocalRandom.current();
 		for (int i = ar.length - 1; i > 0; i--) {
 			final int index = rnd.nextInt(i + 1);
 			final TestElement a = ar[index];
@@ -50,7 +50,7 @@ public class TestCache {
 		}
 	}
 	public void testCache() throws Exception {
-		// initialize countdownlatch
+		// initialize countdownlatches
 		testSync = new CountDownLatch(threads);
 		startTimeSync = new CountDownLatch(1);
 
@@ -118,14 +118,11 @@ public class TestCache {
 			// log a status
 			System.out.println("Finished priming cache for iteration " + i + ".");
 
-			// submit writes
-			final List<Future<Long>> writeFutures = new ArrayList<Future<Long>>();
-			writeCallables.stream().forEach(p -> writeFutures.add(testThreads.submit(p)));
-
-
-			// submit reads
-			final List<Future<Long>> readFutures = new ArrayList<Future<Long>>();
-			readCallables.stream().forEach(p -> readFutures.add(testThreads.submit(p)));
+			// submit reads and writes
+			@SuppressWarnings("unchecked")
+			Future<Long>[] writeFutures = writeCallables.stream().map(c -> testThreads.submit(c)).toArray(Future[]::new);
+			@SuppressWarnings("unchecked")
+			Future<Long>[] readFutures = readCallables.stream().map(c -> testThreads.submit(c)).toArray(Future[]::new);
 
 			// wait for all threads to reach readiness
 			try {
@@ -172,6 +169,7 @@ public class TestCache {
 		// shut down the worker threadpool
 		testThreads.shutdown();
 	}
+	
 	private class CacheReader implements Callable<Long> {
 		private final TestElement[] elements_;
 
