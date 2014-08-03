@@ -9,7 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.mkosem.impl.Ehcache;
+import org.mkosem.impl.ConcurrentMapCache;
 
 public class TestCache {
 	private class CacheReader implements Callable<Long> {
@@ -129,9 +129,9 @@ public class TestCache {
 			// initialize a cache implementation
 			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
 			// testMap = new ReadWriteLockMapCache<String, ValueBox>(totalCacheCapacity, 1f, cacheConcurrencyLevel);
-			// testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			// testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
-			testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
+			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new JCSCache<String,ValueBox>(totalCacheCapacity);
 			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
