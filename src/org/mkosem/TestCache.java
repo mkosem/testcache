@@ -66,27 +66,19 @@ public class TestCache {
 
 		// prepare worker callables
 		@SuppressWarnings("unchecked")
-		final Future<Callable<Long>[]> writePrimer = testThreads.submit(() -> {
-			return java.util.stream.IntStream.range(0, threadsPerSegment).parallel().mapToObj(j -> {
-				final TestElement[] setOneValues = new TestElement[submitChunkSize];
-				System.arraycopy(firstDataSet, j * submitChunkSize, setOneValues, 0, submitChunkSize);
-				shuffleArray(setOneValues);
-				return new CacheReader(setOneValues);
-			}).toArray(Callable[]::new);
-		});
+		final Callable<Long>[] writeCallables = java.util.stream.IntStream.range(0, threadsPerSegment).parallel().mapToObj(j -> {
+			final TestElement[] setTwoValues = new TestElement[submitChunkSize];
+			System.arraycopy(secondDataSet, j * submitChunkSize, setTwoValues, 0, submitChunkSize);
+			shuffleArray(setTwoValues);
+			return new CacheWriter(setTwoValues);
+		}).toArray(Callable[]::new);
 		@SuppressWarnings("unchecked")
-		final Future<Callable<Long>[]> readPrimer = testThreads.submit(() -> {
-			return java.util.stream.IntStream.range(0, threadsPerSegment).parallel().mapToObj(j -> {
-				final TestElement[] setTwoValues = new TestElement[submitChunkSize];
-				System.arraycopy(secondDataSet, j * submitChunkSize, setTwoValues, 0, submitChunkSize);
-				shuffleArray(setTwoValues);
-				return new CacheWriter(setTwoValues);
-			}).toArray(Callable[]::new);
-		});
-
-		// retrieve prepared callables
-		final Callable<Long>[] writeCallables = writePrimer.get();
-		final Callable<Long>[] readCallables = readPrimer.get();
+		final Callable<Long>[] readCallables = java.util.stream.IntStream.range(0, threadsPerSegment).parallel().mapToObj(j -> {
+			final TestElement[] setOneValues = new TestElement[submitChunkSize];
+			System.arraycopy(firstDataSet, j * submitChunkSize, setOneValues, 0, submitChunkSize);
+			shuffleArray(setOneValues);
+			return new CacheReader(setOneValues);
+		}).toArray(Callable[]::new);
 
 		// write an informational message
 		System.out.println("Finished generating test data.");
@@ -165,7 +157,7 @@ public class TestCache {
 		public Long call() throws Exception {
 			testSync.countDown();
 			startTimeSync.await();
-
+			
 			Arrays.stream(elements_).forEach(e -> {
 				if (!testMap.get(e.getKey()).equals(e.getValue())) {
 					throw new RuntimeException("Read failed for key " + e.getKey() + ".  Returned value was not " + e.getValue() + ".");
