@@ -9,7 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.mkosem.impl.ConcurrentMapCache;
+import org.mkosem.impl.GuavaConcurrentMapCache;
 
 public class TestCache {
 	// config values
@@ -88,8 +88,9 @@ public class TestCache {
 			// initialize a cache implementation
 			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
 			// testMap = new ReadWriteLockMapCache<String, ValueBox>(totalCacheCapacity, 1f, cacheConcurrencyLevel);
-			testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			// testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			// testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			testMap = new GuavaConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new JCSCache<String,ValueBox>(totalCacheCapacity);
@@ -134,7 +135,7 @@ public class TestCache {
 			if (i > 0) {
 				writeTimes += iterationWriteTime;
 				readTimes += iterationReadTime;
-				System.out.println("Iteration " + i + " average wrie time: " + iterationWriteTime / threadsPerSegment / size + "ns");
+				System.out.println("Iteration " + i + " average write time: " + iterationWriteTime / threadsPerSegment / size + "ns");
 				System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment / size + "ns");
 			}
 		}
