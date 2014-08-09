@@ -11,7 +11,7 @@ The test operates via a simple pattern:
 
 Support is included, out of the box, for testing against a simple Synchronized HashMap, three variants of Concurrent HashMaps, one lock-free HashMap, an Ehcache-based cache, a Guava-based Cache, a JCS-based cache, a NitroCache-based, and a MapDB-based cache.
 
-On my Core i5-4570S desktop PC with 16GB of DDR3-2400 cas11 ram running Arch Linux with a 3.15 kernel within Eclipse on Oracle JDK 1.8.0, I see the following performance figures for each of these storage units with 4 threads (2 read 2 write) using a sample size of 1024 bytes and 2M reads/writes.
+On my Core i5-4570S desktop PC with 16GB of DDR3-2400 cas11 ram running Arch Linux with a 3.15 kernel within Eclipse on Oracle JDK 1.8.0 and a minimal XFCE desktop environment, I see the following performance figures for each of these storage units with 4 threads (2 read 2 write) using a sample size of 1024 bytes and 2M reads/writes on a 10GB heap with stock GC configs.
 
 Synchronized HashMap:
  - Overall average write time: 537ns
