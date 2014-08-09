@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
-import org.mkosem.impl.GuavaCache;
+import org.mkosem.impl.GuavaConcurrentMapCache;
 
 public class TestCache {
 	// config values
@@ -90,9 +90,9 @@ public class TestCache {
 			// testMap = new ReadWriteLockMapCache<String, ValueBox>(totalCacheCapacity, 1f, cacheConcurrencyLevel);
 			// testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			// testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
-			// testMap = new GuavaConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
+			testMap = new GuavaConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
-			testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
+			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new JCSCache<String,ValueBox>(totalCacheCapacity);
 			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new OnHeapMapDBCache<String, ValueBox>(totalCacheCapacity);
