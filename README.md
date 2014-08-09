@@ -3,11 +3,11 @@ testcache
 
 Concurrent Read/Write Performance Test for Java Maps/Caches
 
-This map/chache performance test performs concurrent read/write operations with the desired number of threads, with the desired number of samples with the desired size.
+This map/cache performance test executes concurrent read/write operations with the desired number of threads, with the desired number of samples of the desired size.
 
 The test operates via a simple pattern:
 1) primes the cache with a set of values
-2) concurrently performs randomly ordered validating reads as well as randomly ordered writes against the cache, with reading the primed values and writing new values
+2) concurrently performs randomly ordered reads, with validation, of primed values and randomly ordered writes
 
 Support is included, out of the box, for testing against a simple Synchronized HashMap, three variants of Concurrent HashMaps, one lock-free HashMap, an Ehcache-based cache, a Guava-based Cache, a JCS-based cache, a NitroCache-based, and a MapDB-based cache.
 
