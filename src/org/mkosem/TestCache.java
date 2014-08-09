@@ -23,6 +23,7 @@ public class TestCache {
 	private static final int threadsPerSegment = threads / 2;
 	private static final int submitChunkSize = size / threadsPerSegment;
 
+	// other test members
 	private ICache<String, ValueBox> testMap;
 	private CountDownLatch testSync;
 	private CountDownLatch startTimeSync;
