@@ -2,7 +2,6 @@ package org.mkosem.impl;
 
 import java.io.Serializable;
 import java.util.Properties;
-
 import org.apache.commons.jcs.JCS;
 import org.apache.commons.jcs.access.CacheAccess;
 import org.apache.commons.jcs.access.exception.CacheException;
@@ -10,9 +9,9 @@ import org.apache.commons.jcs.engine.CompositeCacheAttributes;
 import org.apache.commons.jcs.engine.control.CompositeCacheManager;
 import org.mkosem.ICache;
 
-public class JCSCache<K extends Serializable,V extends Serializable> implements ICache<K,V> {
+public class JCSCache<K extends Serializable, V extends Serializable> implements ICache<K, V> {
 	private CacheAccess<K, V> cache_ = null;
-	
+
 	public JCSCache(int capacity) throws CacheException {
 		JCS.setConfigProperties(new Properties());
 		CompositeCacheAttributes attributes = new CompositeCacheAttributes();
@@ -24,7 +23,7 @@ public class JCSCache<K extends Serializable,V extends Serializable> implements 
 	}
 
 	@Override
-	public void destroy(){
+	public void destroy() {
 		try {
 			cache_.clear();
 			cache_.dispose();
@@ -38,13 +37,13 @@ public class JCSCache<K extends Serializable,V extends Serializable> implements 
 	public V get(K key) {
 		return cache_.get(key);
 	}
-	
+
 	@Override
 	public void put(K key, V value) {
 		try {
 			cache_.put(key, value);
 		} catch (CacheException e) {
 			e.printStackTrace();
-		}	
+		}
 	}
 }

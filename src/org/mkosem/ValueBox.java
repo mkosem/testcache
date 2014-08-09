@@ -4,14 +4,15 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
-
 public class ValueBox implements Serializable {
 	private static final long serialVersionUID = 838907810902225940L;
 	private final byte[] contents_;
+
 	ValueBox(int size) {
 		contents_ = new byte[size];
 		ThreadLocalRandom.current().nextBytes(contents_);
 	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -25,6 +26,7 @@ public class ValueBox implements Serializable {
 			return false;
 		return true;
 	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

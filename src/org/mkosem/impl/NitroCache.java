@@ -1,18 +1,17 @@
 package org.mkosem.impl;
 
 import org.mkosem.ICache;
-
 import com.hv.nitroCache.CacheEviction;
 
-public class NitroCache<K,V> implements ICache<K,V> {
-	private final com.hv.nitroCache.NitroCache<K,V> cache_;
-	
+public class NitroCache<K, V> implements ICache<K, V> {
+	private final com.hv.nitroCache.NitroCache<K, V> cache_;
+
 	public NitroCache(int capacity) {
 		cache_ = com.hv.nitroCache.NitroCache.getInstance(capacity, CacheEviction.FIFO);
 	}
 
 	@Override
-	public void destroy(){
+	public void destroy() {
 		cache_.clear();
 		cache_.shutdown();
 	}
@@ -21,9 +20,9 @@ public class NitroCache<K,V> implements ICache<K,V> {
 	public V get(K key) {
 		return cache_.get(key);
 	}
-	
+
 	@Override
 	public void put(K key, V value) {
-		cache_.put(key, value);	
+		cache_.put(key, value);
 	}
 }

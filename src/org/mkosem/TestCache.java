@@ -8,8 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
-
-import org.mkosem.impl.GuavaConcurrentMapCache;
+import org.mkosem.impl.GuavaCache;
 
 public class TestCache {
 	// config values
@@ -32,7 +31,6 @@ public class TestCache {
 	public static final void main(String[] args) {
 		try {
 			new TestCache().testCache();
-
 		} catch (final Exception e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -88,20 +86,15 @@ public class TestCache {
 		for (int i = 0; i < testIterations + 1; i++) {
 			// initialize a cache implementation
 			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
-			// testMap = new ReadWriteLockMapCache<String,
-			// ValueBox>(totalCacheCapacity, 1f, cacheConcurrencyLevel);
-			// testMap = new ConcurrentMapCache<String,
-			// ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
-			// testMap = new SE7ConcurrentMapCache<String,
-			// ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
-			testMap = new GuavaConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
+			// testMap = new ReadWriteLockMapCache<String, ValueBox>(totalCacheCapacity, 1f, cacheConcurrencyLevel);
+			// testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			// testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
+			// testMap = new GuavaConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
-			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel,
-			// totalCacheCapacity);
+			testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new JCSCache<String,ValueBox>(totalCacheCapacity);
 			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
-			// testMap = new OnHeapMapDBCache<String,
-			// ValueBox>(totalCacheCapacity);
+			// testMap = new OnHeapMapDBCache<String, ValueBox>(totalCacheCapacity);
 
 			// prime the cache
 			Arrays.stream(firstDataSet).parallel().forEach(e -> testMap.put(e.getKey(), e.getValue()));
@@ -185,7 +178,6 @@ public class TestCache {
 			final long readEndTime = System.nanoTime();
 			return readEndTime - startTime;
 		}
-
 	}
 
 	private class CacheWriter implements Callable<Long> {
