@@ -12,10 +12,10 @@ import org.mkosem.impl.GuavaConcurrentMapCache;
 
 public class TestCache {
 	// config values
-	private static final int threads = 4;
-	private static final int size = 2000000;
-	private static final int recordSize = 1024;
-	private static final int testIterations = 8;
+	private static final int threads = 4;// must be evenly divisible by two
+	private static final int size = 2000000;// the total number of active test objects - peak capacity will be 2* this value
+	private static final int recordSize = 1024;// size, in bytes, of the payload of each object
+	private static final int testIterations = 8;// the number of measured test iterations (note, one primer iteration occurs in addition to this count)
 
 	// calculated config values
 	private static final int totalCacheCapacity = size * 2;
@@ -83,7 +83,7 @@ public class TestCache {
 		// write an informational message
 		System.out.println("Finished generating test data.");
 
-		// run this testIterations times
+		// run this sequence testIterations times
 		for (int i = 0; i < testIterations + 1; i++) {
 			// initialize a cache implementation
 			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
@@ -98,7 +98,7 @@ public class TestCache {
 			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new OnHeapMapDBCache<String, ValueBox>(totalCacheCapacity);
 
-			// prime the cache
+			// prime the cache with values that will be read by the reader threads
 			Arrays.stream(firstDataSet).parallel().forEach(e -> testMap.put(e.getKey(), e.getValue()));
 
 			// log a status
@@ -140,10 +140,6 @@ public class TestCache {
 				}
 			}).sum();
 
-			// clean up after testing
-			testMap.destroy();
-			System.gc();
-
 			// process results
 			if (i > 0) {
 				writeTimes += iterationWriteTime;
@@ -151,6 +147,10 @@ public class TestCache {
 				System.out.println("Iteration " + i + " average write time: " + iterationWriteTime / threadsPerSegment / size + "ns");
 				System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment / size + "ns");
 			}
+
+			// clean up after testing
+			testMap.destroy();
+			System.gc();
 		}
 
 		System.out.println("Overall average write time: " + (writeTimes / threadsPerSegment / size / testIterations) + "ns");
