@@ -49,7 +49,7 @@ NitroCache (FIFO):
  - Overall average write time: 1743ns
  - Overall average read time: 1404ns
 
-Non-Blocking HashMap:
+Non-Blocking HashMap (Cliff Click):
  - Overall average write time: 319ns
  - Overall average read time: 238ns
  
