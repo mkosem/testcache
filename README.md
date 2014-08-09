@@ -9,7 +9,7 @@ The test operates via a simple pattern:
 1) primes the cache with a set of values
 2) concurrently performs randomly ordered validating reads as well as randomly ordered writes against the cache, with reading the primed values and writing new values
 
-Support is included, out of the box, for testing against a simple Synchronized HashMap, two variants of ConcurrentHashMap, an Ehcache-based cache, a Guava-based Cache, a JCS-based cache, a NitroCache-based, and a MapDB-based cache.
+Support is included, out of the box, for testing against a simple Synchronized HashMap, three variants of Concurrent HashMaps, an Ehcache-based cache, a Guava-based Cache, a JCS-based cache, a NitroCache-based, and a MapDB-based cache.
 
 On my Core i5-4570S desktop PC with 16GB of DDR3-2400 cas11 ram running Arch Linux with a 3.15 kernel within Eclipse on Oracle JDK 1.8.0, I see the following performance figures for each of these storage units with 4 threads (2 read 2 write).
 
@@ -36,6 +36,10 @@ Ehcache (LRU/eternal/heap only/max capacity set):
 Guava Cache (initial/max capacity set):
  - Overall average write time: 622ns
  - Overall average read time: 134ns
+
+Guava ConcurrentHashMap:
+ - Overall average write time: 68ns
+ - Overall average read time: 45ns
 
 JCS Cache (max capacity set):
  - Overall average write time: 2039ns
