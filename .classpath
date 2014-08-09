@@ -12,5 +12,6 @@
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.3.jar"/>
 	<classpathentry kind="lib" path="lib/se7chmbackport.jar"/>
 	<classpathentry kind="lib" path="lib/mapdb-1.1.0-20140719.161335-12.jar"/>
+	<classpathentry kind="lib" path="lib/high-scale-lib.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -91,6 +91,7 @@ public class TestCache {
 			// testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			// testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
 			testMap = new GuavaConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
+			// testMap = new NonBlockingMapCache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
 			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
 			// testMap = new JCSCache<String,ValueBox>(totalCacheCapacity);
