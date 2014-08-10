@@ -57,3 +57,91 @@ MapDB (on-heap):
  - Overall average write time: 4005ns
  - Overall average read time: 2359ns
  
+
+The same test conditions on a system with a pair of Xeon X5520 CPUs and 16GB of DDR3-1066 CAS7 ram, but on Windows 7 and with 16 test threads show:
+ 
+Synchronized HashMap:
+ - Overall average write time: 932ns
+ - Overall average read time: 646ns
+
+ReadWriteLock Synchronized HashMap:
+ - Overall average write time: 1103ns
+ - Overall average read time: 882ns
+
+ConcurrentHashMap:
+ - Overall average write time: 104ns
+ - Overall average read time: 98ns
+
+ConcurrentHashMap (SE7 code backported to Java 8):
+ - Overall average write time: 107ns
+ - Overall average read time: 80ns
+
+Ehcache (LRU/eternal/heap only/max capacity set):
+ - Overall average write time: 317ns
+ - Overall average read time: 262ns
+
+Guava Cache (initial/max capacity set):
+ - Overall average write time: 571ns
+ - Overall average read time: 132ns
+
+Guava ConcurrentHashMap:
+ - Overall average write time: 56ns
+ - Overall average read time: 71ns
+
+JCS Cache (max capacity set):
+ - Overall average write time: 1725ns
+ - Overall average read time: 853ns
+
+NitroCache (FIFO):
+ - Overall average write time: 824ns
+ - Overall average read time: 222ns
+
+Non-Blocking HashMap (Cliff Click):
+ - Overall average write time: 893ns
+ - Overall average read time: 207ns
+ 
+MapDB (on-heap):
+ - Overall average write time: 3508ns
+ - Overall average read time: 1182ns
+ 
+And a subset of the tests on the same box, but with 32 threads:
+
+ConcurrentHashMap:
+Overall average write time: 72ns
+Overall average read time: 98ns
+
+ConcurrentHashMap (SE7 code backported to Java 8):
+Overall average write time: 81ns
+Overall average read time: 78ns
+
+Guava ConcurrentHashMap:
+Overall average write time: 37ns
+Overall average read time: 62ns
+ 
+And the same tests, but with 64 threads:
+
+ConcurrentHashMap:
+Overall average write time: 57ns
+Overall average read time: 95ns
+
+ConcurrentHashMap (SE7 code backported to Java 8):
+Overall average write time: 51ns
+Overall average read time: 79ns
+
+Guava ConcurrentHashMap:
+Overall average write time: 27ns
+Overall average read time: 57ns
+ 
+And the same tests, but with 128 threads:
+
+ConcurrentHashMap:
+Overall average write time: 43ns
+Overall average read time: 90ns
+
+ConcurrentHashMap (SE7 code backported to Java 8):
+Overall average write time: 55ns
+Overall average read time: 70ns
+
+Guava ConcurrentHashMap:
+Overall average write time: 37ns
+Overall average read time: 50ns
