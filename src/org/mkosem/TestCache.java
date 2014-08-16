@@ -157,17 +157,18 @@ public class TestCache {
 			if (i > 0) {
 				writeTimes += iterationWriteTime;
 				readTimes += iterationReadTime;
-				System.out.println("Iteration " + i + " average write time: " + iterationWriteTime / threadsPerSegment / size + "ns");
-				System.out.println("Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment / size + "ns");
+				System.out.println(testMap.getDescription() + " Iteration " + i + " average write time: " + iterationWriteTime / threadsPerSegment / size + "ns");
+				System.out.println(testMap.getDescription() + " Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment / size + "ns");
 			}
 
 			// clean up after testing
 			testMap.destroy();
+			testMap = null;
 			System.gc();
 		}
 
-		System.out.println("Overall average write time: " + (writeTimes / threadsPerSegment / size / testIterations) + "ns");
-		System.out.println("Overall average read time: " + (readTimes / threadsPerSegment / size / testIterations) + "ns");
+		System.out.println(testMap.getDescription() + " Overall average write time: " + (writeTimes / threadsPerSegment / size / testIterations) + "ns");
+		System.out.println(testMap.getDescription() + " Overall average read time: " + (readTimes / threadsPerSegment / size / testIterations) + "ns");
 
 		// shut down the worker threadpool
 		testThreads.shutdown();
