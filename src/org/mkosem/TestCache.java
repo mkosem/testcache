@@ -1,8 +1,9 @@
 package org.mkosem;
 
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -48,9 +49,6 @@ public class TestCache {
 	private static final int cacheConcurrencyLevel = threads * 2;
 	private static final int threadsPerSegment = threads / 2;
 	private static final int submitChunkSize = size / threadsPerSegment;
-
-	// other test members
-	private final List<String> resultStrings = new LinkedList<String>();
 
 	// iteration-specific test members
 	private ICache<String, ValueBox> testMap;
@@ -104,32 +102,27 @@ public class TestCache {
 		System.out.println("Finished generating test data.");
 
 		// compile a set of test targets
-		List<Class<? extends ICache<String, ValueBox>>> testCandidates = new LinkedList<Class<? extends ICache<String, ValueBox>>>();
-		testCandidates.add((Class<? extends ICache<String, ValueBox>>) MapCache.class);
-		testCandidates.add((Class<? extends ICache<String, ValueBox>>) ReadWriteLockMapCache.class);
-		testCandidates.add((Class<? extends ICache<String, ValueBox>>) ConcurrentMapCache.class);
-		testCandidates.add((Class<? extends ICache<String, ValueBox>>) SE7ConcurrentMapCache.class);
-		testCandidates.add((Class<? extends ICache<String, ValueBox>>) NonBlockingMapCache.class);
-		testCandidates.add((Class<? extends ICache<String, ValueBox>>) Ehcache.class);
-		testCandidates.add((Class<? extends ICache<String, ValueBox>>) GuavaCache.class);
-		testCandidates.add((Class<? extends ICache<String, ValueBox>>) JCSCache.class);
-		testCandidates.add((Class<? extends ICache<String, ValueBox>>) NitroCache.class);
-		testCandidates.add((Class<? extends ICache<String, ValueBox>>) OnHeapMapDBCache.class);
+		Map<Class<? extends ICache<String, ValueBox>>, TestResult> testCandidates = new LinkedHashMap<Class<? extends ICache<String, ValueBox>>, TestResult>();
+		testCandidates.put((Class<? extends ICache<String, ValueBox>>) MapCache.class, new TestResult());
+		testCandidates.put((Class<? extends ICache<String, ValueBox>>) ReadWriteLockMapCache.class, new TestResult());
+		testCandidates.put((Class<? extends ICache<String, ValueBox>>) ConcurrentMapCache.class, new TestResult());
+		testCandidates.put((Class<? extends ICache<String, ValueBox>>) SE7ConcurrentMapCache.class, new TestResult());
+		testCandidates.put((Class<? extends ICache<String, ValueBox>>) NonBlockingMapCache.class, new TestResult());
+		testCandidates.put((Class<? extends ICache<String, ValueBox>>) Ehcache.class, new TestResult());
+		testCandidates.put((Class<? extends ICache<String, ValueBox>>) GuavaCache.class, new TestResult());
+		testCandidates.put((Class<? extends ICache<String, ValueBox>>) JCSCache.class, new TestResult());
+		testCandidates.put((Class<? extends ICache<String, ValueBox>>) NitroCache.class, new TestResult());
+		testCandidates.put((Class<? extends ICache<String, ValueBox>>) OnHeapMapDBCache.class, new TestResult());
 
-		// run the test for this type
-		for (Class<? extends ICache<String, ValueBox>> cacheType : testCandidates) {
-			// initialize values for success/failure statistics and timings
-			long writeTimes = 0L;
-			long readTimes = 0L;
-			String cacheDescription = "";
-
-			// run test sequence testIterations times
-			for (int i = 0; i < testIterations + 1; i++) {
+		// run test sequence testIterations times
+		for (int i = 0; i < testIterations + 1; i++) {
+			// run the test for this type
+			for (Entry<Class<? extends ICache<String, ValueBox>>, TestResult> cacheType : testCandidates.entrySet()) {
 				// initialize the implementation
-				testMap = cacheType.getConstructor(int.class, int.class).newInstance(new Object[] { totalCacheCapacity, cacheConcurrencyLevel });
+				testMap = cacheType.getKey().getConstructor(int.class, int.class).newInstance(new Object[] { totalCacheCapacity, cacheConcurrencyLevel });
 
 				// set the description variable
-				cacheDescription = testMap.getDescription();
+				cacheType.getValue().setDescription(testMap.getDescription());
 
 				// initialize countdownlatches
 				testSync = new CountDownLatch(threads);
@@ -177,8 +170,8 @@ public class TestCache {
 
 				// process results
 				if (i > 0) {
-					writeTimes += iterationWriteTime;
-					readTimes += iterationReadTime;
+					cacheType.getValue().addWriteTime(iterationWriteTime);
+					cacheType.getValue().addReadTime(iterationReadTime);
 					System.out.println("(" + testMap.getDescription() + ") Iteration " + i + " average write time: " + iterationWriteTime / threadsPerSegment / size + "ns");
 					System.out.println("(" + testMap.getDescription() + ") Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment / size + "ns");
 				}
@@ -188,23 +181,15 @@ public class TestCache {
 				testMap = null;
 				System.gc();
 			}
-
-			// compile and print/store result data
-			StringBuilder resultStringBuilder = new StringBuilder("\n").append(cacheDescription).append(":\n");
-			resultStringBuilder.append("Overall average write time: " + (writeTimes / threadsPerSegment / size / testIterations) + "ns").append("\n");
-			resultStringBuilder.append("Overall average read time: " + (readTimes / threadsPerSegment / size / testIterations) + "ns").append("\n");
-			String resultString = resultStringBuilder.toString();
-			resultStrings.add(resultString);
-			System.out.println(resultString);
 		}
 
 		// shut down the worker threadpool
 		testThreads.shutdown();
 
 		// print final status info
-		System.out.println("Results:");
-		for (String resultString : resultStrings) {
-			System.out.println(resultString);
+		System.out.println("\n\nResults:");
+		for (Entry<Class<? extends ICache<String, ValueBox>>, TestResult> cacheType : testCandidates.entrySet()) {
+			System.out.println(cacheType.getValue().getResultData());
 		}
 	}
 
@@ -245,6 +230,31 @@ public class TestCache {
 			Arrays.stream(elements_).forEach(e -> testMap.put(e.getKey(), e.getValue()));
 			final long writeEndTime = System.nanoTime();
 			return writeEndTime - startTime;
+		}
+	}
+
+	private class TestResult {
+		private long writeTimes_ = 0L;
+		private long readTimes_ = 0L;
+		private String cacheDescription_ = "";
+
+		private void addReadTime(long argReadTime) {
+			readTimes_ += argReadTime;
+		}
+
+		private void addWriteTime(long argWriteTime) {
+			writeTimes_ += argWriteTime;
+		}
+
+		private String getResultData() {
+			StringBuilder resultStringBuilder = new StringBuilder("\n").append(cacheDescription_).append(":\n");
+			resultStringBuilder.append("Overall average write time: " + (writeTimes_ / threadsPerSegment / size / testIterations) + "ns").append("\n");
+			resultStringBuilder.append("Overall average read time: " + (readTimes_ / threadsPerSegment / size / testIterations) + "ns").append("\n");
+			return resultStringBuilder.toString();
+		}
+
+		private void setDescription(String argDescription) {
+			cacheDescription_ = argDescription;
 		}
 	}
 }
