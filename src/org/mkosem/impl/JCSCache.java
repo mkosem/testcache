@@ -27,7 +27,7 @@ import org.mkosem.ICache;
 public class JCSCache<K extends Serializable, V extends Serializable> implements ICache<K, V> {
 	private CacheAccess<K, V> cache_ = null;
 
-	public JCSCache(int capacity) throws CacheException {
+	public JCSCache(int capacity, int concurrencyLevel) throws CacheException {
 		JCS.setConfigProperties(new Properties());
 		CompositeCacheAttributes attributes = new CompositeCacheAttributes();
 		attributes.setMaxObjects(capacity);

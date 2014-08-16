@@ -22,8 +22,8 @@ import org.mkosem.ICache;
 public class NonBlockingMapCache<K, V> implements ICache<K, V> {
 	private final Map<K, V> cache_;
 
-	public NonBlockingMapCache(int initialCapacity) {
-		cache_ = new NonBlockingHashMap<K, V>(initialCapacity);
+	public NonBlockingMapCache(int capacity, int concurrencyLevel) {
+		cache_ = new NonBlockingHashMap<K, V>(capacity);
 	}
 
 	@Override

@@ -22,7 +22,7 @@ import com.google.common.cache.CacheBuilder;
 public class GuavaCache<K, V> implements ICache<K, V> {
 	private final Cache<K, V> cache_;
 
-	public GuavaCache(int concurrencyLevel, int capacity) {
+	public GuavaCache(int capacity, int concurrencyLevel) {
 		cache_ = CacheBuilder.newBuilder().concurrencyLevel(concurrencyLevel).maximumSize(capacity).initialCapacity(capacity).build();
 	}
 

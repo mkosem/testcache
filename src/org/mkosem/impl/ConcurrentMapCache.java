@@ -22,8 +22,8 @@ import org.mkosem.ICache;
 public class ConcurrentMapCache<K, V> implements ICache<K, V> {
 	private final Map<K, V> cache_;
 
-	public ConcurrentMapCache(int concurrencyLevel, int initialCapacity, Float fillFactor) {
-		cache_ = new ConcurrentHashMap<K, V>(initialCapacity, fillFactor, concurrencyLevel);
+	public ConcurrentMapCache(int capacity, int concurrencyLevel) {
+		cache_ = new ConcurrentHashMap<K, V>(capacity, 1f, concurrencyLevel);
 	}
 
 	@Override

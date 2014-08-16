@@ -21,7 +21,7 @@ import com.hv.nitroCache.CacheEviction;
 public class NitroCache<K, V> implements ICache<K, V> {
 	private final com.hv.nitroCache.NitroCache<K, V> cache_;
 
-	public NitroCache(int capacity) {
+	public NitroCache(int capacity, int concurrencyLevel) {
 		cache_ = com.hv.nitroCache.NitroCache.getInstance(capacity, CacheEviction.FIFO);
 	}
 

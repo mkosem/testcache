@@ -1,6 +1,8 @@
 package org.mkosem;
 
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -8,6 +10,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
+import org.mkosem.impl.ConcurrentMapCache;
+import org.mkosem.impl.Ehcache;
+import org.mkosem.impl.GuavaCache;
+import org.mkosem.impl.JCSCache;
+import org.mkosem.impl.MapCache;
+import org.mkosem.impl.NitroCache;
+import org.mkosem.impl.NonBlockingMapCache;
+import org.mkosem.impl.OnHeapMapDBCache;
+import org.mkosem.impl.ReadWriteLockMapCache;
+import org.mkosem.impl.SE7ConcurrentMapCache;
 
 /*
  * Copyright 2014 Matt Kosem
@@ -38,6 +50,9 @@ public class TestCache {
 	private static final int submitChunkSize = size / threadsPerSegment;
 
 	// other test members
+	private final List<String> resultStrings = new LinkedList<String>();
+
+	// iteration-specific test members
 	private ICache<String, ValueBox> testMap;
 	private CountDownLatch testSync;
 	private CountDownLatch startTimeSync;
@@ -62,15 +77,8 @@ public class TestCache {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public void testCache() throws Exception {
-		// initialize countdownlatches
-		testSync = new CountDownLatch(threads);
-		startTimeSync = new CountDownLatch(1);
-
-		// initialize values for success/failure statistics and timings
-		long writeTimes = 0L;
-		long readTimes = 0L;
-
 		// set up a threadpool for the test
 		final ExecutorService testThreads = Executors.newFixedThreadPool(threads);
 
@@ -79,14 +87,12 @@ public class TestCache {
 		final TestElement[] secondDataSet = java.util.stream.IntStream.range(0, size).parallel().mapToObj(i -> new TestElement(Integer.toString(size + i), new ValueBox(recordSize))).toArray(TestElement[]::new);
 
 		// prepare worker callables
-		@SuppressWarnings("unchecked")
 		final Callable<Long>[] writeCallables = java.util.stream.IntStream.range(0, threadsPerSegment).parallel().mapToObj(j -> {
 			final TestElement[] setTwoValues = new TestElement[submitChunkSize];
 			System.arraycopy(secondDataSet, j * submitChunkSize, setTwoValues, 0, submitChunkSize);
 			shuffleArray(setTwoValues);
 			return new CacheWriter(setTwoValues);
 		}).toArray(Callable[]::new);
-		@SuppressWarnings("unchecked")
 		final Callable<Long>[] readCallables = java.util.stream.IntStream.range(0, threadsPerSegment).parallel().mapToObj(j -> {
 			final TestElement[] setOneValues = new TestElement[submitChunkSize];
 			System.arraycopy(firstDataSet, j * submitChunkSize, setOneValues, 0, submitChunkSize);
@@ -97,81 +103,109 @@ public class TestCache {
 		// write an informational message
 		System.out.println("Finished generating test data.");
 
-		// run this sequence testIterations times
-		for (int i = 0; i < testIterations + 1; i++) {
-			// initialize a cache implementation
-			// testMap = new MapCache<String, ValueBox>(totalCacheCapacity, 1f);
-			// testMap = new ReadWriteLockMapCache<String, ValueBox>(totalCacheCapacity, 1f, cacheConcurrencyLevel);
-			// testMap = new ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
-			// testMap = new SE7ConcurrentMapCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity, 1f);
-			// testMap = new NonBlockingMapCache<String, ValueBox>(totalCacheCapacity);
-			// testMap = new Ehcache<String, ValueBox>(totalCacheCapacity);
-			// testMap = new GuavaCache<String, ValueBox>(cacheConcurrencyLevel, totalCacheCapacity);
-			// testMap = new JCSCache<String,ValueBox>(totalCacheCapacity);
-			// testMap = new NitroCache<String, ValueBox>(totalCacheCapacity);
-			// testMap = new OnHeapMapDBCache<String, ValueBox>(totalCacheCapacity);
+		// compile a set of test targets
+		List<Class<? extends ICache<String, ValueBox>>> testCandidates = new LinkedList<Class<? extends ICache<String, ValueBox>>>();
+		testCandidates.add((Class<? extends ICache<String, ValueBox>>) MapCache.class);
+		testCandidates.add((Class<? extends ICache<String, ValueBox>>) ReadWriteLockMapCache.class);
+		testCandidates.add((Class<? extends ICache<String, ValueBox>>) ConcurrentMapCache.class);
+		testCandidates.add((Class<? extends ICache<String, ValueBox>>) SE7ConcurrentMapCache.class);
+		testCandidates.add((Class<? extends ICache<String, ValueBox>>) NonBlockingMapCache.class);
+		testCandidates.add((Class<? extends ICache<String, ValueBox>>) Ehcache.class);
+		testCandidates.add((Class<? extends ICache<String, ValueBox>>) GuavaCache.class);
+		testCandidates.add((Class<? extends ICache<String, ValueBox>>) JCSCache.class);
+		testCandidates.add((Class<? extends ICache<String, ValueBox>>) NitroCache.class);
+		testCandidates.add((Class<? extends ICache<String, ValueBox>>) OnHeapMapDBCache.class);
 
-			// prime the cache with values that will be read by the reader threads
-			Arrays.stream(firstDataSet).parallel().forEach(e -> testMap.put(e.getKey(), e.getValue()));
+		// run the test for this type
+		for (Class<? extends ICache<String, ValueBox>> cacheType : testCandidates) {
+			// initialize values for success/failure statistics and timings
+			long writeTimes = 0L;
+			long readTimes = 0L;
+			String cacheDescription = "";
 
-			// log a status
-			System.out.println("Finished priming cache for iteration " + i + ".");
+			// run test sequence testIterations times
+			for (int i = 0; i < testIterations + 1; i++) {
+				// initialize the implementation
+				testMap = cacheType.getConstructor(int.class, int.class).newInstance(new Object[] { totalCacheCapacity, cacheConcurrencyLevel });
 
-			// submit reads and writes
-			@SuppressWarnings("unchecked")
-			final Future<Long>[] writeFutures = Arrays.stream(writeCallables).map(c -> testThreads.submit(c)).toArray(Future[]::new);
-			@SuppressWarnings("unchecked")
-			final Future<Long>[] readFutures = Arrays.stream(readCallables).map(c -> testThreads.submit(c)).toArray(Future[]::new);
+				// set the description variable
+				cacheDescription = testMap.getDescription();
 
-			// wait for all threads to reach readiness
-			try {
-				testSync.await();
-			} catch (final InterruptedException e) {
-				e.printStackTrace();
+				// initialize countdownlatches
+				testSync = new CountDownLatch(threads);
+				startTimeSync = new CountDownLatch(1);
+
+				// prime the cache with values that will be read by the reader threads
+				Arrays.stream(firstDataSet).parallel().forEach(e -> testMap.put(e.getKey(), e.getValue()));
+
+				// log a status
+				System.out.println("(" + testMap.getDescription() + ") Finished priming cache for iteration " + i + ".");
+
+				// submit reads and writes
+				final Future<Long>[] writeFutures = Arrays.stream(writeCallables).map(c -> testThreads.submit(c)).toArray(Future[]::new);
+				final Future<Long>[] readFutures = Arrays.stream(readCallables).map(c -> testThreads.submit(c)).toArray(Future[]::new);
+
+				// wait for all threads to reach readiness
+				try {
+					testSync.await();
+				} catch (final InterruptedException e) {
+					e.printStackTrace();
+				}
+
+				// force garbage collection before starting
+				System.gc();
+
+				// set the test start time and release all of the test threads
+				startTime = System.nanoTime();
+				startTimeSync.countDown();
+
+				// retrieve reads and writes
+				final long iterationWriteTime = Arrays.stream(writeFutures).mapToLong((e) -> {
+					try {
+						return e.get();
+					} catch (final Exception ex) {
+						throw new RuntimeException("An exception occurred.", ex);
+					}
+				}).sum();
+				final long iterationReadTime = Arrays.stream(readFutures).mapToLong((e) -> {
+					try {
+						return e.get();
+					} catch (final Exception ex) {
+						throw new RuntimeException("An exception occurred.", ex);
+					}
+				}).sum();
+
+				// process results
+				if (i > 0) {
+					writeTimes += iterationWriteTime;
+					readTimes += iterationReadTime;
+					System.out.println("(" + testMap.getDescription() + ") Iteration " + i + " average write time: " + iterationWriteTime / threadsPerSegment / size + "ns");
+					System.out.println("(" + testMap.getDescription() + ") Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment / size + "ns");
+				}
+
+				// clean up after testing
+				testMap.destroy();
+				testMap = null;
+				System.gc();
 			}
 
-			// force garbage collection before starting
-			System.gc();
-
-			// set the test start time and release all of the test threads
-			startTime = System.nanoTime();
-			startTimeSync.countDown();
-
-			// retrieve reads and writes
-			final long iterationWriteTime = Arrays.stream(writeFutures).mapToLong((e) -> {
-				try {
-					return e.get();
-				} catch (final Exception ex) {
-					throw new RuntimeException("An exception occurred.", ex);
-				}
-			}).sum();
-			final long iterationReadTime = Arrays.stream(readFutures).mapToLong((e) -> {
-				try {
-					return e.get();
-				} catch (final Exception ex) {
-					throw new RuntimeException("An exception occurred.", ex);
-				}
-			}).sum();
-
-			// process results
-			if (i > 0) {
-				writeTimes += iterationWriteTime;
-				readTimes += iterationReadTime;
-				System.out.println(testMap.getDescription() + " Iteration " + i + " average write time: " + iterationWriteTime / threadsPerSegment / size + "ns");
-				System.out.println(testMap.getDescription() + " Iteration " + i + " average read time: " + iterationReadTime / threadsPerSegment / size + "ns");
-			}
-
-			// clean up after testing
-			testMap.destroy();
-			testMap = null;
-			System.gc();
+			// compile and print/store result data
+			StringBuilder resultStringBuilder = new StringBuilder("\n").append(cacheDescription).append(":\n");
+			resultStringBuilder.append("Overall average write time: " + (writeTimes / threadsPerSegment / size / testIterations) + "ns").append("\n");
+			resultStringBuilder.append("Overall average read time: " + (readTimes / threadsPerSegment / size / testIterations) + "ns").append("\n");
+			String resultString = resultStringBuilder.toString();
+			resultStrings.add(resultString);
+			System.out.println(resultString);
 		}
-
-		System.out.println(testMap.getDescription() + " Overall average write time: " + (writeTimes / threadsPerSegment / size / testIterations) + "ns");
-		System.out.println(testMap.getDescription() + " Overall average read time: " + (readTimes / threadsPerSegment / size / testIterations) + "ns");
 
 		// shut down the worker threadpool
 		testThreads.shutdown();
+
+		// print final status info
+		System.out.println("Results:");
+		for (String resultString : resultStrings) {
+			System.out.println(resultString);
+		}
 	}
 
 	private class CacheReader implements Callable<Long> {

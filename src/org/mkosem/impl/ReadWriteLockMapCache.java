@@ -28,9 +28,9 @@ public class ReadWriteLockMapCache<K, V> implements ICache<K, V> {
 	private final Lock readLock_;
 	private final Lock writeLock_;
 
-	public ReadWriteLockMapCache(int initialCapacity, Float fillFactor, int numThreads) {
+	public ReadWriteLockMapCache(int capacity, int concurrencyLevel) {
 		lock_ = new ReentrantReadWriteLock();
-		cache_ = new HashMap<K, V>(initialCapacity, fillFactor);
+		cache_ = new HashMap<K, V>(capacity);
 		readLock_ = lock_.writeLock();
 		writeLock_ = lock_.writeLock();
 	}

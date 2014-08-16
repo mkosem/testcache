@@ -22,8 +22,8 @@ import org.mkosem.ICache;
 public class OnHeapMapDBCache<K, V> implements ICache<K, V> {
 	private final HTreeMap<K, V> cache_;
 
-	public OnHeapMapDBCache(int initialCapacity) {
-		cache_ = DBMaker.newHeapDB().transactionDisable().make().createHashMap("cache").<K, V> make();
+	public OnHeapMapDBCache(int capacity, int concurrencyLevel) {
+		cache_ = DBMaker.newHeapDB().cacheSize(capacity).transactionDisable().make().createHashMap("cache").<K, V> make();
 	}
 
 	@Override

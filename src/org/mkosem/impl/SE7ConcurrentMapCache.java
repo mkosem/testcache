@@ -22,8 +22,8 @@ import se7.java.util.concurrent.ConcurrentHashMap;
 public class SE7ConcurrentMapCache<K, V> implements ICache<K, V> {
 	private final Map<K, V> cache_;
 
-	public SE7ConcurrentMapCache(int concurrencyLevel, int initialCapacity, Float fillFactor) {
-		cache_ = new ConcurrentHashMap<K, V>(initialCapacity, fillFactor, concurrencyLevel);
+	public SE7ConcurrentMapCache(int capacity, int concurrencyLevel) {
+		cache_ = new ConcurrentHashMap<K, V>(capacity, 1f, concurrencyLevel);
 	}
 
 	@Override

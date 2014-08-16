@@ -25,7 +25,7 @@ public class Ehcache<K, V> implements ICache<K, V> {
 	private final String cacheName = "test";
 	private final Cache cache_;
 
-	public Ehcache(int capacity) {
+	public Ehcache(int capacity, int concurrencyLevel) {
 		CacheConfiguration config = new CacheConfiguration();
 		config.setName(cacheName);
 		config.setMaxEntriesLocalHeap(capacity);

@@ -23,8 +23,8 @@ import org.mkosem.ICache;
 public class MapCache<K, V> implements ICache<K, V> {
 	private final Map<K, V> cache_;
 
-	public MapCache(int initialCapacity, Float fillFactor) {
-		cache_ = Collections.synchronizedMap(new HashMap<K, V>(initialCapacity, fillFactor));
+	public MapCache(int capacity, int concurrencyLevel) {
+		cache_ = Collections.synchronizedMap(new HashMap<K, V>(capacity));
 	}
 
 	@Override
