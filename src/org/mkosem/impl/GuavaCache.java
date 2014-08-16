@@ -37,6 +37,11 @@ public class GuavaCache<K, V> implements ICache<K, V> {
 	}
 
 	@Override
+	public String getDescription() {
+		return "Guava CacheBuilder";
+	}
+
+	@Override
 	public void put(K key, V value) {
 		cache_.put(key, value);
 	}

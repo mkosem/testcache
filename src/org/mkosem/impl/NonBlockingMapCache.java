@@ -36,6 +36,11 @@ public class NonBlockingMapCache<K, V> implements ICache<K, V> {
 	}
 
 	@Override
+	public String getDescription() {
+		return "Non-Blocking Map";
+	}
+
+	@Override
 	public void put(K key, V value) {
 		cache_.put(key, value);
 

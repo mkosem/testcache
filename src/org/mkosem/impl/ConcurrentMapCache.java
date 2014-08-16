@@ -37,8 +37,12 @@ public class ConcurrentMapCache<K, V> implements ICache<K, V> {
 	}
 
 	@Override
+	public String getDescription() {
+		return "ConcurrentHashMap";
+	}
+
+	@Override
 	public void put(K key, V value) {
 		cache_.put(key, value);
-
 	}
 }

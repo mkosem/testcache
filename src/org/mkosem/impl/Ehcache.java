@@ -46,6 +46,11 @@ public class Ehcache<K, V> implements ICache<K, V> {
 	}
 
 	@Override
+	public String getDescription() {
+		return "EHCache";
+	}
+
+	@Override
 	public void put(K key, V value) {
 		Element element = new Element(key, value);
 		cache_.put(element);

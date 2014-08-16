@@ -38,6 +38,11 @@ public class MapCache<K, V> implements ICache<K, V> {
 	}
 
 	@Override
+	public String getDescription() {
+		return "HashMap";
+	}
+
+	@Override
 	public void put(K key, V value) {
 		cache_.put(key, value);
 	}

@@ -56,6 +56,11 @@ public class ReadWriteLockMapCache<K, V> implements ICache<K, V> {
 	}
 
 	@Override
+	public String getDescription() {
+		return "ReadWriteLock-Synchronized HashMap";
+	}
+
+	@Override
 	public void put(K key, V value) {
 		try {
 			writeLock_.lock();

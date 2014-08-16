@@ -37,6 +37,11 @@ public class NitroCache<K, V> implements ICache<K, V> {
 	}
 
 	@Override
+	public String getDescription() {
+		return "NitroCache";
+	}
+
+	@Override
 	public void put(K key, V value) {
 		cache_.put(key, value);
 	}

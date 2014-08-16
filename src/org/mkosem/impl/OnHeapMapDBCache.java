@@ -38,6 +38,11 @@ public class OnHeapMapDBCache<K, V> implements ICache<K, V> {
 	}
 
 	@Override
+	public String getDescription() {
+		return "MapDB OnHeap";
+	}
+
+	@Override
 	public void put(K key, V value) {
 		cache_.put(key, value);
 	}

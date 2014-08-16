@@ -54,6 +54,11 @@ public class JCSCache<K extends Serializable, V extends Serializable> implements
 	}
 
 	@Override
+	public String getDescription() {
+		return "JCS";
+	}
+
+	@Override
 	public void put(K key, V value) {
 		try {
 			cache_.put(key, value);
