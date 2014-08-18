@@ -22,7 +22,7 @@ public class NitroCache<K, V> implements ICache<K, V> {
 	private final com.hv.nitroCache.NitroCache<K, V> cache_;
 
 	public NitroCache(int capacity, int concurrencyLevel) {
-		cache_ = com.hv.nitroCache.NitroCache.getInstance(capacity, CacheEviction.FIFO);
+		cache_ = com.hv.nitroCache.NitroCache.getInstance(capacity, CacheEviction.LRU);
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class NitroCache<K, V> implements ICache<K, V> {
 
 	@Override
 	public String getDescription() {
-		return "NitroCache";
+		return "NitroCache (LRU)";
 	}
 
 	@Override
