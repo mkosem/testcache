@@ -41,11 +41,11 @@ public class TestCache {
 	// config values
 	private static final int threads = 4;// must be evenly divisible by two
 	private static final int size = 1000000;// the total number of active test objects - peak capacity will be 2* this value
-	private static final int recordSize = 256;// size, in bytes, of the payload of each object
+	private static final int recordSize = 16;// size, in bytes, of the payload of each object
 	private static final int testIterations = 8;// the number of measured test iterations (note, one primer iteration occurs in addition to this count)
 
 	// calculated config values
-	private static final int totalCacheCapacity = size * 2;
+	private static final int totalCacheCapacity = (int) (size * 2 / 0.75f);
 	private static final int cacheConcurrencyLevel = threads * 2;
 	private static final int threadsPerSegment = threads / 2;
 	private static final int submitChunkSize = size / threadsPerSegment;
@@ -205,11 +205,11 @@ public class TestCache {
 			testSync.countDown();
 			startTimeSync.await();
 
-			Arrays.stream(elements_).forEach(e -> {
+			for (TestElement e : elements_) {
 				if (!testMap.get(e.getKey()).equals(e.getValue())) {
 					throw new RuntimeException("Read failed for key " + e.getKey() + ".  Returned value was not " + e.getValue() + ".");
 				}
-			});
+			}
 			final long readEndTime = System.nanoTime();
 			return readEndTime - startTime;
 		}
@@ -227,7 +227,9 @@ public class TestCache {
 			testSync.countDown();
 			startTimeSync.await();
 
-			Arrays.stream(elements_).forEach(e -> testMap.put(e.getKey(), e.getValue()));
+			for (TestElement e : elements_) {
+                            testMap.put(e.getKey(), e.getValue());
+                        }
 			final long writeEndTime = System.nanoTime();
 			return writeEndTime - startTime;
 		}
