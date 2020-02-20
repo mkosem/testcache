@@ -40,8 +40,8 @@ import org.mkosem.impl.SE7ConcurrentMapCache;
 public class TestCache {
 	// config values
 	private static final int threads = 4;// must be evenly divisible by two
-	private static final int size = 2000000;// the total number of active test objects - peak capacity will be 2* this value
-	private static final int recordSize = 1024;// size, in bytes, of the payload of each object
+	private static final int size = 1000000;// the total number of active test objects - peak capacity will be 2* this value
+	private static final int recordSize = 256;// size, in bytes, of the payload of each object
 	private static final int testIterations = 8;// the number of measured test iterations (note, one primer iteration occurs in addition to this count)
 
 	// calculated config values
@@ -102,22 +102,22 @@ public class TestCache {
 		System.out.println("Finished generating test data.");
 
 		// compile a set of test targets
-		Map<Class<? extends ICache<String, ValueBox>>, TestResult> testCandidates = new LinkedHashMap<Class<? extends ICache<String, ValueBox>>, TestResult>();
-		testCandidates.put((Class<? extends ICache<String, ValueBox>>) MapCache.class, new TestResult());
-		testCandidates.put((Class<? extends ICache<String, ValueBox>>) ReadWriteLockMapCache.class, new TestResult());
-		testCandidates.put((Class<? extends ICache<String, ValueBox>>) ConcurrentMapCache.class, new TestResult());
-		testCandidates.put((Class<? extends ICache<String, ValueBox>>) SE7ConcurrentMapCache.class, new TestResult());
-		testCandidates.put((Class<? extends ICache<String, ValueBox>>) NonBlockingMapCache.class, new TestResult());
-		testCandidates.put((Class<? extends ICache<String, ValueBox>>) Ehcache.class, new TestResult());
-		testCandidates.put((Class<? extends ICache<String, ValueBox>>) GuavaCache.class, new TestResult());
-		testCandidates.put((Class<? extends ICache<String, ValueBox>>) JCSCache.class, new TestResult());
-		testCandidates.put((Class<? extends ICache<String, ValueBox>>) NitroCache.class, new TestResult());
-		testCandidates.put((Class<? extends ICache<String, ValueBox>>) OnHeapMapDBCache.class, new TestResult());
+		Map<Class<? extends ICache>, TestResult> testCandidates = new LinkedHashMap<>();
+		testCandidates.put(MapCache.class, new TestResult());
+		testCandidates.put(ReadWriteLockMapCache.class, new TestResult());
+		testCandidates.put(ConcurrentMapCache.class, new TestResult());
+		testCandidates.put(SE7ConcurrentMapCache.class, new TestResult());
+		testCandidates.put(NonBlockingMapCache.class, new TestResult());
+		testCandidates.put(Ehcache.class, new TestResult());
+		testCandidates.put(GuavaCache.class, new TestResult());
+		testCandidates.put(JCSCache.class, new TestResult());
+		testCandidates.put(NitroCache.class, new TestResult());
+		testCandidates.put(OnHeapMapDBCache.class, new TestResult());
 
 		// run test sequence testIterations times
 		for (int i = 0; i < testIterations + 1; i++) {
 			// run the test for this type
-			for (Entry<Class<? extends ICache<String, ValueBox>>, TestResult> cacheType : testCandidates.entrySet()) {
+			for (Entry<Class<? extends ICache>, TestResult> cacheType : testCandidates.entrySet()) {
 				// initialize the implementation
 				testMap = cacheType.getKey().getConstructor(int.class, int.class).newInstance(new Object[] { totalCacheCapacity, cacheConcurrencyLevel });
 
@@ -188,7 +188,7 @@ public class TestCache {
 
 		// print final status info
 		System.out.println("\n\nResults:");
-		for (Entry<Class<? extends ICache<String, ValueBox>>, TestResult> cacheType : testCandidates.entrySet()) {
+		for (Entry<Class<? extends ICache>, TestResult> cacheType : testCandidates.entrySet()) {
 			System.out.println(cacheType.getValue().getResultData());
 		}
 	}
